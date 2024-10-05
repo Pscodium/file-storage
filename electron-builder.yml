@@ -1,18 +1,20 @@
 appId: com.electron.app
-productName: test
+productName: File Storage
 directories:
     buildResources: build
 files:
     - '!**/.vscode/*'
     - '!src/*'
+    - '!resources/*'
     - '!electron.vite.config.{js,ts,mjs,cjs}'
     - '!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
-    - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+    - '!{.env.production,.npmrc,pnpm-lock.yaml}'
     - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
     - resources/**
 win:
-    executableName: test
+    executableName: File Storage
+    icon: resources/icon.ico
 nsis:
     artifactName: ${name}-${version}-setup.${ext}
     shortcutName: ${productName}
