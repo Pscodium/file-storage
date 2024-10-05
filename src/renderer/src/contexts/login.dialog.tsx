@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState } from 'react';
 
 interface LoginDialogContextProps {
     isOpen?: boolean;
@@ -22,7 +22,7 @@ function LoginDialogProvider({ children }: { children: React.ReactNode }) {
                 isOpen,
                 closeDialog,
                 openDialog,
-                setOpen: setIsOpen
+                setOpen: setIsOpen,
             }}
         >
             <>{children}</>
