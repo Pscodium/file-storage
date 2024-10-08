@@ -13,11 +13,11 @@ export default function App(): JSX.Element {
         <div className='h-screen flex flex-col items-center justify-center gap-2'>
             <Storage />
             {user?
-                <div className='absolute right-2 bottom-2 cursor-pointer' onClick={Logout}>
+                <div className='fixed right-2 bottom-2 cursor-pointer' onClick={Logout}>
                     <BiLogOut size={23} className='fill-gray-400' />
                 </div>
             :
-                <div className='absolute right-2 bottom-2 cursor-pointer' onClick={openDialog}>
+                <div className='fixed right-2 bottom-2 cursor-pointer' onClick={openDialog}>
                     <BiSolidDoorOpen size={23} className='fill-gray-400' />
                 </div>
             }
