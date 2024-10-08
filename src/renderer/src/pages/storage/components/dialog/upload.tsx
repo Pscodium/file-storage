@@ -15,13 +15,16 @@ export interface UploadDialogProps {
     isOpen: boolean;
     onClickSubmit: (file: File | undefined) => void;
     mimetype?: FileTypes | undefined;
+    fileName: string | undefined;
+    setFileName: React.Dispatch<React.SetStateAction<string | undefined>>;
 }
 
-export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype }: UploadDialogProps) {
+export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype, fileName, setFileName }: UploadDialogProps) {
     const [file, setFile] = useState<File | undefined>(undefined);
     const [fileUrl, setFileUrl] = useState<string | null>(null);
     const onDrop = useCallback((files: File[]) => {
         const file = files[0]
+        setFileName(undefined);
         setFile(file);
         if (file) {
             setFile(file);
@@ -62,6 +65,16 @@ export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype 
                     getInputProps={getInputProps}
                     isDragActive={isDragActive}
                 />
+                {file && (
+                    <div className='w-full flex px-[53px]'>
+                        <input 
+                            className='w-full h-6 border border-1 rounded-md'
+                            placeholder={file?.name}
+                            value={fileName}
+                            onChange={(ev) => setFileName(ev.target.value)}
+                        />
+                    </div>
+                )}
                 <div className="flex gap-3">
                     <DialogTrigger>
                         <Button className="rounded-md bg-gray-500 text-white hover:bg-forum-navb font-bold">

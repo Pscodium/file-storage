@@ -28,18 +28,6 @@ interface LoginProps {
     password: string;
 }
 
-interface ArticleProps {
-    title: string;
-    body: string;
-    tags: {
-        title: string
-    }[]
-}
-
-interface ArticleEditProps extends ArticleProps {
-    articleId: string
-}
-
 class ApiService {
     public api: AxiosInstance;
 
@@ -105,7 +93,7 @@ class ApiService {
 
     async login({ email, password }: FormProps): Promise<AxiosResponse<UserProps, any>> {
         this.api.defaults.withCredentials = true;
-        const res = await this.api.post('/login', {
+        const res = await this.api.post('/electron/login', {
             email,
             password
         }, {
@@ -132,81 +120,6 @@ class ApiService {
         return res.data.success;
     }
 
-    async getTags(): Promise<ITagResponse> {
-        const res = await this.api.get('/list-all/tags');
-
-        if (res.status != 200) {
-            throw new Error('Unexpected error on get logout');
-        }
-
-        return res.data;
-    }
-
-    async getArticlesByTagId(tagId: string): Promise<IArticleResponse> {
-        const res = await this.api.get('/list/articles/' + tagId);
-
-        if (res.status != 200) {
-            throw new Error('Unexpected error on get logout');
-        }
-
-        return res.data;
-    }
-
-    async createArticle({ body, tags, title } : ArticleProps) {
-        const res = await this.api.post('/article/create', {
-            body,
-            title,
-            tags
-        }, {
-            headers: this.getHeaders(),
-        })
-
-        if (res.status != 200) {
-            throw new Error('Unexpected error on get logout');
-        }
-
-        return res.data;
-    }
-
-    async updateArticle({ body, tags, title, articleId } : ArticleEditProps) {
-        const res = await this.api.put(`/article/update/${articleId}`, {
-            body,
-            title,
-            tags
-        }, {
-            headers: this.getHeaders(),
-        })
-
-        if (res.status != 200) {
-            throw new Error('Unexpected error on get logout');
-        }
-
-        return res.data;
-    }
-
-    async deleteArticle(articleId: string | undefined) {
-        const res = await this.api.delete(`/article/delete/${articleId}`, {
-            headers: this.getHeaders()
-        })
-
-        if (res.status != 200) {
-            throw new Error('Unexpected error on get logout');
-        }
-
-        return res.data;
-    }
-
-    async deleteFolder(folderId: string | undefined) {
-        const res = await this.api.delete(`/tag/delete/${folderId}`, {
-            headers: this.getHeaders()
-        })
-
-        if (res.status != 200) {
-            throw new Error('Unexpected error on get logout');
-        }
-
-        return res.data;
-    }
 
     async getFiles(): Promise<IFileResponse> {
         const res = await this.api.get(`/storage`)
@@ -218,31 +131,26 @@ class ApiService {
         return res.data;
     }
 
-    async uploadFile(file: File, folderId: string, progress: (percentage: number) => void): Promise<IFile> {
+    async uploadFile(file: File, folderId: string, progress: (percentage: number) => void, fileName?: string): Promise<IFile> {
         const formData = new FormData();
-        formData.append('media', file);
+        const fileNameWithoutExtention = file.name.split('.');
+        fileNameWithoutExtention.pop();
+        const newFileName = fileName? `${fileName}-${Date.now()}.${file.name.split('.').pop()}` : `${fileNameWithoutExtention}-${Date.now()}.${file.name.split('.').pop()}`;
+        const renamedFile = new File([file], newFileName, { type: file.type });
+
+        formData.append('media', renamedFile);
 
         const res = await this.api.post(`/storage/upload/${folderId}`, formData, {
             headers: this.getHeaders(),
             responseType: 'blob',
             onUploadProgress(progressEvent) {
-                console.log('progress aqui ', progressEvent)
                 if (progressEvent.total) {
                     const percentage = Math.round(
                         (progressEvent.loaded * 100) / progressEvent.total
                     );
                     progress(percentage)
                 }
-            },
-            // onDownloadProgress(progressEvent) {
-            //     console.log('progress aqui ', progressEvent)
-            //     if (progressEvent.total) {
-            //         const percentage = Math.round(
-            //             (progressEvent.loaded * 100) / progressEvent.total
-            //         );
-            //         progress(percentage)
-            //     }
-            // },
+            }
         });
 
         if (res.status != 200) {

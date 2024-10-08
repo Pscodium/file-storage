@@ -13,6 +13,7 @@ import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
 import { IoSend } from "react-icons/io5";
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
+import { TailSpin } from 'react-loader-spinner';
 
 export interface StorageProps {}
 
@@ -33,7 +34,9 @@ export default function Storage() {
     const [folderType, setFolderType] = useState<FileTypes | undefined>(undefined);
     const [files, setFiles] = useState<IFileResponse | undefined>([]);
     const [file, setFile] = useState<IFile>();
+    const [fileName, setFileName] = useState<string | undefined>();
     const [uploadPercentage, setUploadPercentage] = useState(0);
+    const [hasDelete, setHasDelete] = useState(false);
     const [hasUpload, setHasUpload] = useState(false);
     const [folders, setFolders] = useState<IFolderResponse>([])
     const [folder, setFolder] = useState<IFolder>();
@@ -92,7 +95,7 @@ export default function Storage() {
             setOpenUploadDialog(false);
             setHasUpload(true);
 
-            const uploaded = await apiService.uploadFile(file, folder.id, updateUploadPercentage);
+            const uploaded = await apiService.uploadFile(file, folder.id, updateUploadPercentage, fileName);
 
             if (uploaded) {
                 toast({
@@ -121,6 +124,8 @@ export default function Storage() {
     async function deleteFile() {
         try {
             if (!file || !folder) return;
+            setOpenContentDialog(false);
+            setHasDelete(true);
 
             await apiService.deleteFile(file.id, folder.id);
 
@@ -130,7 +135,7 @@ export default function Storage() {
                 description: "O arquivo foi deletado com sucesso",
                 className: "outline-none border-none bg-green-600 text-white",
             });
-            setOpenContentDialog(false);
+            setHasDelete(false);
             setStep('FOLDERS');
             setFolder(undefined);
             getFolders();
@@ -149,9 +154,12 @@ export default function Storage() {
     async function deleteFolder() {
         try {
             if (!folder) return;
+            setHasDelete(true);
+
             await apiService.deleteStorageFolder(folder.id);
 
             setStep('FOLDERS');
+            setHasDelete(false);
             setFolder(undefined);
             getFolders();
         } catch (err) {
@@ -259,6 +267,20 @@ export default function Storage() {
                             </Desktop.WindowHeader>
                             <Desktop.WindowContent>
                                 <Folders.Root className="flex flex-wrap gap-3 pt-7">
+                                    {!folders.length && (
+                                        <div className='absolute inset-0 flex items-center justify-center'>
+                                            <TailSpin
+                                                visible={true}
+                                                height="80"
+                                                width="80"
+                                                color="#8b8b8b"
+                                                ariaLabel="tail-spin-loading"
+                                                radius="1"
+                                                wrapperStyle={{}}
+                                                wrapperClass=""
+                                            />
+                                        </div>
+                                    )}
                                     {folders.map((folder, index) => (
                                         <Folders.Body hover={folder.name} key={index} onClick={() => handleOpenFolder(folder)} className="p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer">
                                             <Folders.Icon hex={folder.hex} />
@@ -326,11 +348,28 @@ export default function Storage() {
                     </div>
                 </div>
             )}
+            {hasDelete && (
+                <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
+                    <div className='w-full flex items-center justify-between'>
+                        <p>Deletando...</p>
+                        <div className="flex justify-center items-center">
+                        <div className="w-4 h-4 border-[1px] border-red-500 border-dashed rounded-full animate-spin"></div>
+                        </div>
+                    </div>
+                    <div className="relative flex h-5 w-full overflow-hidden rounded-full bg-gray-200 p-1 shadow-3xl">
+                        <div className='w-full h-full rounded-full overflow-hidden'>
+                            <div className="progress relative h-full w-[20%] rounded-full bg-gradient-to-r bg-red-700" />
+                        </div>
+                    </div>
+                </div>
+            )}
             <UploadDialog
                 isOpen={openUploadDialog}
                 mimetype={folder?.type}
                 setOpen={setOpenUploadDialog}
                 onClickSubmit={uploadFileSubmit}
+                fileName={fileName}
+                setFileName={setFileName}
             />
             <ContentDialog 
                 file={file}
