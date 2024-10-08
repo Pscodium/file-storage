@@ -78,6 +78,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                     description: "You just logged out, now go to hell...",
                     className: "outline-none border-none bg-green-600 text-white",
                 });
+                window.location.reload();
                 return logout;
             }
         } catch (err) {
