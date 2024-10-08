@@ -93,7 +93,7 @@ class ApiService {
 
     async login({ email, password }: FormProps): Promise<AxiosResponse<UserProps, any>> {
         this.api.defaults.withCredentials = true;
-        const res = await this.api.post('/login', {
+        const res = await this.api.post('/electron/login', {
             email,
             password
         }, {
