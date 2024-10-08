@@ -9,7 +9,7 @@ export default function WindowHeader({ children }: { children: string }) {
     const _window: ElectronWindow = window.electron;
 
     return (
-        <div className='bg-gray-200 absolute top-0 z-[998] w-full h-7 flex items-center justify-center'>
+        <div className='bg-gray-200 top-0 fixed z-[998] w-full h-7 flex items-center justify-center'>
             <div className='absolute right-2 top-[6px] flex flex-row gap-2'>
                 <button 
                     onClick={() => _window.controlWindow?.('minimize')} 

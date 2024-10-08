@@ -80,8 +80,11 @@ export default function Storage() {
             if (!data) return;
 
             setFolders(data);
+
+            return data;
         } catch (err) {
             console.error(err);
+            return undefined;
         }
     }
 
@@ -136,9 +139,15 @@ export default function Storage() {
                 className: "outline-none border-none bg-green-600 text-white",
             });
             setHasDelete(false);
-            setStep('FOLDERS');
-            setFolder(undefined);
-            getFolders();
+            // setStep('FOLDERS');
+            const newFolders = await getFolders();
+            if (folder && newFolders) {
+                const foundFolder = newFolders.find(f => f.id === folder?.id);
+                if (foundFolder) {
+                    handleOpenFolder(foundFolder);
+                    setStep('FILES')
+                }
+            }
         } catch (err) {
             toast({
                 variant: "destructive",
@@ -204,11 +213,16 @@ export default function Storage() {
         setFiles(folder.Files);
     }
 
-    function handleSubmitFile() {
-        setStep('FOLDERS');
-        setFolder(undefined);
-
-        getFolders();
+    async function handleSubmitFile() {
+        // setStep('FOLDERS')
+        const newFolders = await getFolders();
+        if (folder && newFolders) {
+            const foundFolder = newFolders.find(f => f.id === folder?.id);
+            if (foundFolder) {
+                handleOpenFolder(foundFolder);
+                setStep('FILES')
+            }
+        }
     }
 
     function returnToFolders() {
@@ -266,7 +280,7 @@ export default function Storage() {
                                 Storage
                             </Desktop.WindowHeader>
                             <Desktop.WindowContent>
-                                <Folders.Root className="flex flex-wrap gap-3 pt-7">
+                                <Folders.Root className="flex flex-wrap gap-3">
                                     {!folders.length && (
                                         <div className='absolute inset-0 flex items-center justify-center'>
                                             <TailSpin
@@ -317,7 +331,7 @@ export default function Storage() {
                                 {folderTitle}
                             </Desktop.WindowHeader>
                             <Desktop.WindowContent>
-                                <Files.Root className="flex flex-wrap gap-3 pt-7">
+                                <Files.Root className="flex flex-wrap gap-3">
                                     {files && files.map((object, index) => (
                                         <Files.Body onClick={() => openFileDialog(object)} hover={object.name} key={index} className="p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer">
                                             <Files.Icon url={object.url} type={folder?.type} />
@@ -335,7 +349,7 @@ export default function Storage() {
             {hasUpload && (
                 <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
                     <div className='w-full flex items-center justify-between'>
-                        <p>Uploading... {uploadPercentage}%</p>
+                        <p>Uploading... <b>{uploadPercentage}%</b></p>
                         <div className="flex justify-center items-center">
                             <div className="w-4 h-4 border-[1px] border-blue-500 border-dashed rounded-full animate-spin"></div>
                         </div>
