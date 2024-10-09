@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AxiosInstance, AxiosResponse } from "axios";
-import api from "./axios";
+import { AxiosInstance, AxiosResponse } from 'axios';
+import api from './axios';
 import { parse } from 'cookie';
 
-type UserRoles = "admin" | "developer" | "owner" | "customer" | "default"
+type UserRoles = 'admin' | 'developer' | 'owner' | 'customer' | 'default';
 
 interface UserProps {
     id: number;
@@ -56,7 +56,7 @@ class ApiService {
         }
 
         if (contentType) {
-            headers["Content-Type"] = contentType;
+            headers['Content-Type'] = contentType;
         }
 
         return headers;
@@ -64,11 +64,11 @@ class ApiService {
 
     async checkAuth(): Promise<UserProps> {
         const res = await this.api.get('/check/auth', {
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
         });
 
         if (res.status != 200) {
-            throw new Error("An errror was returned");
+            throw new Error('An errror was returned');
         }
 
         const response = res.data;
@@ -77,13 +77,12 @@ class ApiService {
     }
 
     async getUserData(): Promise<UserProps> {
-
         const res = await this.api.get('/data/user', {
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
         });
 
         if (res.status != 200) {
-            throw new Error("An errror was returned");
+            throw new Error('An errror was returned');
         }
 
         const response = res.data;
@@ -93,12 +92,16 @@ class ApiService {
 
     async login({ email, password }: FormProps): Promise<AxiosResponse<UserProps, any>> {
         this.api.defaults.withCredentials = true;
-        const res = await this.api.post('/electron/login', {
-            email,
-            password
-        }, {
-            headers: this.getHeaders("application/json")
-        });
+        const res = await this.api.post(
+            '/electron/login',
+            {
+                email,
+                password,
+            },
+            {
+                headers: this.getHeaders('application/json'),
+            }
+        );
 
         if (res.status != 200) {
             throw new Error('Unexpected error on get a user profile.');
@@ -108,9 +111,9 @@ class ApiService {
     }
 
     async logout() {
-        const res = await this.api.get('/logout', {
+        const res = await this.api.get('/electron/logout', {
             headers: this.getHeaders(),
-            withCredentials: true
+            withCredentials: true,
         });
 
         if (res.status != 200) {
@@ -120,9 +123,8 @@ class ApiService {
         return res.data.success;
     }
 
-
     async getFiles(): Promise<IFileResponse> {
-        const res = await this.api.get(`/storage`)
+        const res = await this.api.get(`/storage`);
 
         if (res.status != 200) {
             throw new Error('Unexpected error on get files');
@@ -135,7 +137,7 @@ class ApiService {
         const formData = new FormData();
         const fileNameWithoutExtention = file.name.split('.');
         fileNameWithoutExtention.pop();
-        const newFileName = fileName? `${fileName}-${Date.now()}.${file.name.split('.').pop()}` : `${fileNameWithoutExtention}-${Date.now()}.${file.name.split('.').pop()}`;
+        const newFileName = fileName ? `${fileName}-${Date.now()}.${file.name.split('.').pop()}` : `${fileNameWithoutExtention}-${Date.now()}.${file.name.split('.').pop()}`;
         const renamedFile = new File([file], newFileName, { type: file.type });
 
         formData.append('media', renamedFile);
@@ -145,12 +147,10 @@ class ApiService {
             responseType: 'blob',
             onUploadProgress(progressEvent) {
                 if (progressEvent.total) {
-                    const percentage = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total
-                    );
-                    progress(percentage)
+                    const percentage = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    progress(percentage);
                 }
-            }
+            },
         });
 
         if (res.status != 200) {
@@ -162,7 +162,7 @@ class ApiService {
 
     async deleteFile(id: string, folderId: string): Promise<IFile> {
         const res = await this.api.delete(`/storage/delete/${id}/folder/${folderId}`, {
-            headers: this.getHeaders()
+            headers: this.getHeaders(),
         });
 
         if (res.status != 200) {
@@ -173,7 +173,7 @@ class ApiService {
     }
 
     async getFolders(): Promise<IFolderResponse> {
-        const res = await this.api.get(`/storage/folders`)
+        const res = await this.api.get(`/storage/folders`);
 
         if (res.status != 200) {
             throw new Error('Unexpected error on get files');
@@ -182,13 +182,17 @@ class ApiService {
         return res.data;
     }
 
-    async createFolder({ folderName, type }: { folderName: string, type?: FileTypes }) {
-        const res = await this.api.post('/storage/folders/create', {
-            folderName,
-            type
-        }, {
-            headers: this.getHeaders(),
-        })
+    async createFolder({ folderName, type }: { folderName: string; type?: FileTypes }) {
+        const res = await this.api.post(
+            '/storage/folders/create',
+            {
+                folderName,
+                type,
+            },
+            {
+                headers: this.getHeaders(),
+            }
+        );
 
         if (res.status != 200) {
             throw new Error('Unexpected error on get files');
@@ -199,8 +203,8 @@ class ApiService {
 
     async deleteStorageFolder(id: string) {
         const res = await this.api.delete(`/storage/folders/delete/${id}`, {
-            headers: this.getHeaders()
-        })
+            headers: this.getHeaders(),
+        });
 
         if (res.status != 200) {
             throw new Error('Unexpected error on delete folder');

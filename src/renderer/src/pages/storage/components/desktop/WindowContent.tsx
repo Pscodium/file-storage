@@ -10,16 +10,16 @@ export default function WindowContent({ children }: WindowProps) {
     useEffect(() => {
         const handleResize = () => {
             setWindowHeight(window.innerHeight);
-        }
+        };
 
         window.addEventListener('resize', handleResize);
 
         return () => window.removeEventListener('resize', handleResize);
-    }, [])
+    }, []);
 
     return (
         <div className='p-5 overflow-auto' style={{ height: windowHeight - 32 }}>
-            {children} 
+            {children}
         </div>
     );
 }

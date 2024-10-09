@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@renderer/components/ui/tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@renderer/components/ui/tooltip';
 
 export interface ArticleCardProps extends React.ComponentProps<'div'> {
     children: React.ReactNode;

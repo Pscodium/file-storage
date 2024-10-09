@@ -1,11 +1,11 @@
-import Root from "./Root";
+import Root from './Root';
 import Window from './Window';
-import WindowHeader from "./WindowHeader";
-import WindowContent from "./WindowContent";
+import WindowHeader from './WindowHeader';
+import WindowContent from './WindowContent';
 
-export const Desktop =  {
+export const Desktop = {
     Root,
     Window,
     WindowHeader,
-    WindowContent
+    WindowContent,
 };

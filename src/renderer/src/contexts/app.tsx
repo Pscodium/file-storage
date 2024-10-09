@@ -5,9 +5,7 @@ import { AuthProvider } from './auth';
 export function AppProvider({ children }: { children: React.ReactNode }) {
     return (
         <LoginDialogProvider>
-            <AuthProvider>
-                {children}
-            </AuthProvider>
+            <AuthProvider>{children}</AuthProvider>
         </LoginDialogProvider>
-    )
+    );
 }

@@ -52,11 +52,10 @@ function createWindow(): void {
             default:
                 break;
         }
-    })
+    });
 }
 
 app.whenReady().then(() => {
-
     electronApp.setAppUserModelId('com.electron');
 
     app.on('browser-window-created', (_, window) => {

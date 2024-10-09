@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 import React, { InputHTMLAttributes, useEffect, useRef, useState } from 'react';
-import { cn } from "@renderer/lib/utils";
+import { cn } from '@renderer/lib/utils';
 
 interface FloatingLabelInputProps extends InputHTMLAttributes<HTMLInputElement> {
     label: string;
@@ -43,7 +43,7 @@ export default function FloatingLabelInput({ label, text, onChange, invalid, ...
     }, [text]);
 
     return (
-        <div className="relative">
+        <div className='relative'>
             <input
                 {...rest}
                 className={cn(
@@ -61,7 +61,10 @@ export default function FloatingLabelInput({ label, text, onChange, invalid, ...
             />
             <label
                 onClick={handleLabelClick}
-                className={cn(`absolute cursor-text select-none left-3 transition-all duration-300 ${focused || rest.value ? '-top-2 text-xs text-gray-400 px-0.5' : 'top-2 text-base text-gray-500'}`, rest.className)}
+                className={cn(
+                    `absolute cursor-text select-none left-3 transition-all duration-300 ${focused || rest.value ? '-top-2 text-xs text-gray-400 px-0.5' : 'top-2 text-base text-gray-500'}`,
+                    rest.className
+                )}
             >
                 {label}
             </label>

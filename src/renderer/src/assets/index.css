@@ -4,14 +4,13 @@
 
 @layer utilities {
     .no-drag {
-      -webkit-app-region: no-drag !important;
+        -webkit-app-region: no-drag !important;
     }
-  
+
     .drag {
-      -webkit-app-region: drag;
+        -webkit-app-region: drag;
     }
 }
-
 
 ::-webkit-scrollbar {
     width: 8px;
@@ -35,14 +34,14 @@
 }
 
 .progress {
-    animation: slide 1.2s infinite
+    animation: slide 1.2s infinite;
 }
 
 @keyframes slide {
     from {
-        left: -50%
+        left: -50%;
     }
     to {
-        left: 100%
+        left: 100%;
     }
 }

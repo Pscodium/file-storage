@@ -1,5 +1,5 @@
-import { apiService, LoginProps } from "@renderer/services/api";
-import { useMutation } from "react-query";
+import { apiService, LoginProps } from '@renderer/services/api';
+import { useMutation } from 'react-query';
 
 export default function useLogin() {
     const mutate = useMutation({
