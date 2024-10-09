@@ -6,9 +6,5 @@ export interface ArticleCardProps {
 }
 
 export default function Root({ children, className }: ArticleCardProps) {
-    return (
-        <div className={className}>
-            {children}
-        </div>
-    );
+    return <div className={className}>{children}</div>;
 }

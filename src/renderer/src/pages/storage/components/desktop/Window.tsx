@@ -6,9 +6,5 @@ export interface ArticleCardProps extends React.ComponentProps<'div'> {
 }
 
 export default function Window({ children, ...props }: ArticleCardProps) {
-    return (
-        <div className={cn('w-full h-full rounded-md overflow-hidden', props.className)}>
-            {children}
-        </div>
-    );
+    return <div className={cn('w-full h-full rounded-md overflow-hidden', props.className)}>{children}</div>;
 }

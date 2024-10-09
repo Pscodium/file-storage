@@ -1,10 +1,10 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable no-unused-vars */
-import { useToast } from "@renderer/components/ui/use-toast";
-import useDidMount from "@renderer/hooks/react/useMount";
-import { apiService, UserProps, LoginProps } from "@renderer/services/api";
-import React, { createContext, useContext, useState } from "react";
-import { useLoginDialog } from "./login.dialog";
+import { useToast } from '@renderer/components/ui/use-toast';
+import useDidMount from '@renderer/hooks/react/useMount';
+import { apiService, UserProps, LoginProps } from '@renderer/services/api';
+import React, { createContext, useContext, useState } from 'react';
+import { useLoginDialog } from './login.dialog';
 
 interface LoginPropsMutation extends LoginProps {}
 
@@ -23,18 +23,16 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     const [logged, setLogged] = useState(false);
     const { closeDialog } = useLoginDialog();
 
-
     async function Login({ email, password }: LoginPropsMutation) {
         try {
-
-            const user = await apiService.login({ email, password })
+            const user = await apiService.login({ email, password });
             if (!user) {
                 setLogged(false);
                 toast({
-                    variant: "destructive",
-                    title: "Oh damn. An error has occurred",
-                    description: "You tried to log in but something shit happened...",
-                    className: "outline-none border-none bg-red-600 text-white",
+                    variant: 'destructive',
+                    title: 'Oh damn. An error has occurred',
+                    description: 'You tried to log in but something shit happened...',
+                    className: 'outline-none border-none bg-red-600 text-white',
                 });
                 return false;
             }
@@ -44,10 +42,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             closeDialog();
 
             toast({
-                variant: "destructive",
-                title: "Hell yeah! You are inside me",
-                description: "You have successfully logged in you bastard fagot...",
-                className: "outline-none border-none bg-green-600 text-white",
+                variant: 'destructive',
+                title: 'Hell yeah! You are inside me',
+                description: 'You have successfully logged in you bastard fagot...',
+                className: 'outline-none border-none bg-green-600 text-white',
             });
 
             return true;
@@ -56,10 +54,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             console.error(err);
 
             toast({
-                variant: "destructive",
-                title: "Oh damn. An error has occurred",
-                description: "You tried to log in but something shit happened...",
-                className: "outline-none border-none bg-red-600 text-white",
+                variant: 'destructive',
+                title: 'Oh damn. An error has occurred',
+                description: 'You tried to log in but something shit happened...',
+                className: 'outline-none border-none bg-red-600 text-white',
             });
 
             return false;
@@ -73,20 +71,20 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
             if (logout) {
                 setLogged(false);
                 toast({
-                    variant: "destructive",
-                    title: "Bye bye little bitch!!",
-                    description: "You just logged out, now go to hell...",
-                    className: "outline-none border-none bg-green-600 text-white",
+                    variant: 'destructive',
+                    title: 'Bye bye little bitch!!',
+                    description: 'You just logged out, now go to hell...',
+                    className: 'outline-none border-none bg-green-600 text-white',
                 });
                 window.location.reload();
                 return logout;
             }
         } catch (err) {
             toast({
-                variant: "destructive",
-                title: "Oh damn. An error has occurred",
-                description: "You tried to log out but something shit happened...",
-                className: "outline-none border-none bg-red-600 text-white",
+                variant: 'destructive',
+                title: 'Oh damn. An error has occurred',
+                description: 'You tried to log out but something shit happened...',
+                className: 'outline-none border-none bg-red-600 text-white',
             });
             return false;
         }
@@ -114,7 +112,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                 user,
                 Login,
                 Logout,
-                isLogged: logged
+                isLogged: logged,
             }}
         >
             <>{children}</>

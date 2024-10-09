@@ -6,7 +6,7 @@ export interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
 
 export default function Image(props: ImageProps) {
     const [source, setSource] = useState('');
-    const IMAGE_ERROR = "https://bucket-aws-images-forum.s3.us-east-2.amazonaws.com/no-image.png";
+    const IMAGE_ERROR = 'https://bucket-aws-images-forum.s3.us-east-2.amazonaws.com/no-image.png';
 
     function loadFallback() {
         setSource(IMAGE_ERROR);

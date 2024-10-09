@@ -1,4 +1,3 @@
-
 interface IArticle {
     id: string;
     title: string;
@@ -6,7 +5,7 @@ interface IArticle {
     files?: object | null;
     createdAt: Date;
     updatedAt: Date;
-    Tags?: ITagResponse
+    Tags?: ITagResponse;
 }
 
 interface ITag {
@@ -30,7 +29,6 @@ interface IFile {
     updatedAt: Date;
 }
 
-
 interface IFolder {
     id: string;
     name: string;
@@ -48,4 +46,4 @@ type IFileResponse = IFile[];
 type ITagResponse = ITag[];
 type IArticleResponse = IArticle[];
 
-type FileTypes = "image/*" | "audio/*" | "video/*";
+type FileTypes = 'image/*' | 'audio/*' | 'video/*';

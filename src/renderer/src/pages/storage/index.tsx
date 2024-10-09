@@ -11,23 +11,26 @@ import { Folders } from './components/folders';
 import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
 import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
-import { IoSend } from "react-icons/io5";
+import { IoSend } from 'react-icons/io5';
+import { FaSyncAlt } from 'react-icons/fa';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
 import { TailSpin } from 'react-loader-spinner';
+import ImageConversorDialog from './components/dialog/imageConversor';
 
 export interface StorageProps {}
 
-export type WindowSteps = "FOLDERS" | "FILES";
+export type WindowSteps = 'FOLDERS' | 'FILES';
 enum Mimetypes {
-    Video = "video/*",
-    Audio = "audio/*",
-    Image = "image/*"
+    Video = 'video/*',
+    Audio = 'audio/*',
+    Image = 'image/*',
 }
 
 export default function Storage() {
     const { user } = useAuth();
     const [openUploadDialog, setOpenUploadDialog] = useState(false);
     const [openContentDialog, setOpenContentDialog] = useState(false);
+    const [openImageConversorDialog, setOpenImageConversorDialog] = useState(false);
     const [openFolderPopover, setOpenFolderPopover] = useState(false);
     const [folderTitle, setFolderTitle] = useState('');
     const [folderName, setFolderName] = useState('');
@@ -38,7 +41,7 @@ export default function Storage() {
     const [uploadPercentage, setUploadPercentage] = useState(0);
     const [hasDelete, setHasDelete] = useState(false);
     const [hasUpload, setHasUpload] = useState(false);
-    const [folders, setFolders] = useState<IFolderResponse>([])
+    const [folders, setFolders] = useState<IFolderResponse>([]);
     const [folder, setFolder] = useState<IFolder>();
     const [step, setStep] = useState<WindowSteps>('FOLDERS');
     const [confirming, setConfirming] = useState(false);
@@ -53,13 +56,13 @@ export default function Storage() {
                 setTimer(null);
             }, 3000);
         }
-    return () => clearTimeout(countdown);
+        return () => clearTimeout(countdown);
     }, [confirming, timer]);
 
     useEffect(() => {
-        getFolders()
-        getFiles()
-    }, [])
+        getFolders();
+        getFiles();
+    }, []);
 
     async function getFiles() {
         try {
@@ -102,22 +105,21 @@ export default function Storage() {
 
             if (uploaded) {
                 toast({
-                    variant: "destructive",
-                    title: "SUCESSO",
-                    description: "O arquivo foi enviado com sucesso",
-                    className: "outline-none border-none bg-green-600 text-white",
+                    variant: 'destructive',
+                    title: 'SUCESSO',
+                    description: 'O arquivo foi enviado com sucesso',
+                    className: 'outline-none border-none bg-green-600 text-white',
                 });
                 setHasUpload(false);
                 setUploadPercentage(0);
-                handleSubmitFile()
+                handleSubmitFile();
             }
-            
         } catch (err) {
             toast({
-                variant: "destructive",
-                title: "ERRO",
-                description: "Erro ao tentar enviar o arquivo",
-                className: "outline-none border-none bg-red-600 text-white",
+                variant: 'destructive',
+                title: 'ERRO',
+                description: 'Erro ao tentar enviar o arquivo',
+                className: 'outline-none border-none bg-red-600 text-white',
             });
 
             console.error(err);
@@ -133,33 +135,33 @@ export default function Storage() {
             await apiService.deleteFile(file.id, folder.id);
 
             toast({
-                variant: "destructive",
-                title: "SUCESSO",
-                description: "O arquivo foi deletado com sucesso",
-                className: "outline-none border-none bg-green-600 text-white",
+                variant: 'destructive',
+                title: 'SUCESSO',
+                description: 'O arquivo foi deletado com sucesso',
+                className: 'outline-none border-none bg-green-600 text-white',
             });
             setHasDelete(false);
             // setStep('FOLDERS');
             const newFolders = await getFolders();
             if (folder && newFolders) {
-                const foundFolder = newFolders.find(f => f.id === folder?.id);
+                const foundFolder = newFolders.find((f) => f.id === folder?.id);
                 if (foundFolder) {
                     handleOpenFolder(foundFolder);
-                    setStep('FILES')
+                    setStep('FILES');
                 }
             }
         } catch (err) {
             toast({
-                variant: "destructive",
-                title: "ERRO",
-                description: "Erro ao tentar deletar o arquivo",
-                className: "outline-none border-none bg-red-600 text-white",
+                variant: 'destructive',
+                title: 'ERRO',
+                description: 'Erro ao tentar deletar o arquivo',
+                className: 'outline-none border-none bg-red-600 text-white',
             });
 
             console.error(err);
         }
     }
-    
+
     async function deleteFolder() {
         try {
             if (!folder) return;
@@ -173,10 +175,10 @@ export default function Storage() {
             getFolders();
         } catch (err) {
             toast({
-                variant: "destructive",
-                title: "ERRO",
-                description: "Erro ao tentar deletar o arquivo",
-                className: "outline-none border-none bg-red-600 text-white",
+                variant: 'destructive',
+                title: 'ERRO',
+                description: 'Erro ao tentar deletar o arquivo',
+                className: 'outline-none border-none bg-red-600 text-white',
             });
 
             console.error(err);
@@ -184,11 +186,11 @@ export default function Storage() {
     }
 
     async function createFolder() {
-        setOpenFolderPopover(false)
+        setOpenFolderPopover(false);
         try {
             const data = await apiService.createFolder({
                 folderName,
-                type: folderType
+                type: folderType,
             });
 
             if (!data) return;
@@ -205,7 +207,7 @@ export default function Storage() {
     }
 
     function handleOpenFolder(folder: IFolder) {
-        setStep('FILES')
+        setStep('FILES');
         setFolderTitle(folder.name);
 
         setFolder(folder);
@@ -217,16 +219,16 @@ export default function Storage() {
         // setStep('FOLDERS')
         const newFolders = await getFolders();
         if (folder && newFolders) {
-            const foundFolder = newFolders.find(f => f.id === folder?.id);
+            const foundFolder = newFolders.find((f) => f.id === folder?.id);
             if (foundFolder) {
                 handleOpenFolder(foundFolder);
-                setStep('FILES')
+                setStep('FILES');
             }
         }
     }
 
     function returnToFolders() {
-        setStep('FOLDERS')
+        setStep('FOLDERS');
         setFolder(undefined);
     }
 
@@ -234,7 +236,7 @@ export default function Storage() {
         if (confirming) {
             deleteFolder();
             setConfirming(false);
-            clearTimeout(timer? timer : undefined);
+            clearTimeout(timer ? timer : undefined);
             setTimer(null);
         } else {
             setConfirming(true);
@@ -250,10 +252,10 @@ export default function Storage() {
                     {step === 'FOLDERS' && (
                         <>
                             {user && user?.role === 'owner' && (
-                                <div className="no-drag absolute h-[20px] top-[5px] z-[999] pointer-events-auto ml-1 cursor-pointer">
+                                <div className='no-drag flex items-center gap-2 absolute h-[20px] top-[5px] z-[999] pointer-events-auto ml-1 cursor-pointer'>
                                     <Popover onOpenChange={() => setOpenFolderPopover(!openFolderPopover)} open={openFolderPopover}>
                                         <PopoverTrigger>
-                                            <FaPlus />
+                                            <FaPlus className='hover:fill-gray-600 fill-black' />
                                         </PopoverTrigger>
                                         <PopoverContent className='flex flex-col gap-2 bg-white' side='bottom'>
                                             <div className='flex gap-1'>
@@ -262,9 +264,9 @@ export default function Storage() {
                                                     <IoSend color='#ffffff' />
                                                 </Button>
                                             </div>
-                                            <Select value={folderType} onValueChange={(value) => setFolderType(value as FileTypes)} >
+                                            <Select value={folderType} onValueChange={(value) => setFolderType(value as FileTypes)}>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Tipo" />
+                                                    <SelectValue placeholder='Tipo' />
                                                 </SelectTrigger>
                                                 <SelectContent className='bg-white'>
                                                     <SelectItem value={Mimetypes.Video}>Video</SelectItem>
@@ -274,33 +276,28 @@ export default function Storage() {
                                             </Select>
                                         </PopoverContent>
                                     </Popover>
+                                    <div onClick={() => setOpenImageConversorDialog(true)} className='select-none cursor-pointer'>
+                                        <FaSyncAlt size={13} className='hover:fill-gray-600 fill-black' />
+                                    </div>
                                 </div>
                             )}
-                            <Desktop.WindowHeader>
-                                Storage
-                            </Desktop.WindowHeader>
+                            <Desktop.WindowHeader>Storage</Desktop.WindowHeader>
                             <Desktop.WindowContent>
-                                <Folders.Root className="flex flex-wrap gap-3">
+                                <Folders.Root className='flex flex-wrap gap-3'>
                                     {!folders.length && (
                                         <div className='absolute inset-0 flex items-center justify-center'>
-                                            <TailSpin
-                                                visible={true}
-                                                height="80"
-                                                width="80"
-                                                color="#8b8b8b"
-                                                ariaLabel="tail-spin-loading"
-                                                radius="1"
-                                                wrapperStyle={{}}
-                                                wrapperClass=""
-                                            />
+                                            <TailSpin visible={true} height='80' width='80' color='#8b8b8b' ariaLabel='tail-spin-loading' radius='1' wrapperStyle={{}} wrapperClass='' />
                                         </div>
                                     )}
                                     {folders.map((folder, index) => (
-                                        <Folders.Body hover={folder.name} key={index} onClick={() => handleOpenFolder(folder)} className="p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer">
+                                        <Folders.Body
+                                            hover={folder.name}
+                                            key={index}
+                                            onClick={() => handleOpenFolder(folder)}
+                                            className='p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer'
+                                        >
                                             <Folders.Icon hex={folder.hex} />
-                                            {folder.filesCount != undefined && (
-                                                <Folders.Badge>{folder.filesCount}</Folders.Badge>
-                                            )}
+                                            {folder.filesCount != undefined && <Folders.Badge>{folder.filesCount}</Folders.Badge>}
                                             <Folders.Title>{folder.name}</Folders.Title>
                                         </Folders.Body>
                                     ))}
@@ -310,36 +307,34 @@ export default function Storage() {
                     )}
                     {step === 'FILES' && (
                         <>
-                            <div onClick={returnToFolders} className="absolute no-drag top-[6px] z-[999] ml-2 cursor-pointer pointer-events-auto">
+                            <div onClick={returnToFolders} className='absolute no-drag top-[6px] z-[999] ml-2 cursor-pointer pointer-events-auto'>
                                 <FaArrowLeft />
                             </div>
                             {user && user?.role === 'owner' && (
                                 <>
-                                    <div onClick={() => setOpenUploadDialog(true)} className="absolute h-[20px] no-drag top-[6px] z-[9999] ml-9 cursor-pointer pointer-events-auto">
+                                    <div onClick={() => setOpenUploadDialog(true)} className='absolute h-[20px] no-drag top-[6px] z-[9999] ml-9 cursor-pointer pointer-events-auto'>
                                         <FaPlus />
                                     </div>
-                                    <div onClick={handleDeleteClick} className="absolute no-drag top-[6px] z-[999] h-[20px] ml-[70px] cursor-pointer pointer-events-auto">
-                                    {confirming? 
-                                        <FaSquareCheck color="#ffcc00" className='h-4 w-4' />
-                                        :
-                                        <FaTrashCan color="#FF3366" className='h-4 w-4' />
-                                    }
+                                    <div onClick={handleDeleteClick} className='absolute no-drag top-[6px] z-[999] h-[20px] ml-[70px] cursor-pointer pointer-events-auto'>
+                                        {confirming ? <FaSquareCheck color='#ffcc00' className='h-4 w-4' /> : <FaTrashCan color='#FF3366' className='h-4 w-4' />}
                                     </div>
                                 </>
                             )}
-                            <Desktop.WindowHeader>
-                                {folderTitle}
-                            </Desktop.WindowHeader>
+                            <Desktop.WindowHeader>{folderTitle}</Desktop.WindowHeader>
                             <Desktop.WindowContent>
-                                <Files.Root className="flex flex-wrap gap-3">
-                                    {files && files.map((object, index) => (
-                                        <Files.Body onClick={() => openFileDialog(object)} hover={object.name} key={index} className="p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer">
-                                            <Files.Icon url={object.url} type={folder?.type} />
-                                            {folder?.type && folder.type !== 'video/*' && (
-                                                <Files.Title>{object.name}</Files.Title>
-                                            )}
-                                        </Files.Body>
-                                    ))}
+                                <Files.Root className='flex flex-wrap gap-3'>
+                                    {files &&
+                                        files.map((object, index) => (
+                                            <Files.Body
+                                                onClick={() => openFileDialog(object)}
+                                                hover={object.name}
+                                                key={index}
+                                                className='p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer'
+                                            >
+                                                <Files.Icon url={object.url} type={folder?.type} />
+                                                {folder?.type && folder.type !== 'video/*' && <Files.Title>{object.name}</Files.Title>}
+                                            </Files.Body>
+                                        ))}
                                 </Files.Root>
                             </Desktop.WindowContent>
                         </>
@@ -349,16 +344,15 @@ export default function Storage() {
             {hasUpload && (
                 <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
                     <div className='w-full flex items-center justify-between'>
-                        <p>Uploading... <b>{uploadPercentage}%</b></p>
-                        <div className="flex justify-center items-center">
-                            <div className="w-4 h-4 border-[1px] border-blue-500 border-dashed rounded-full animate-spin"></div>
+                        <p>
+                            Uploading... <b>{uploadPercentage}%</b>
+                        </p>
+                        <div className='flex justify-center items-center'>
+                            <div className='w-4 h-4 border-[1px] border-blue-500 border-dashed rounded-full animate-spin'></div>
                         </div>
                     </div>
-                    <div className="relative flex h-5 w-full overflow-hidden rounded-full bg-gray-200 p-1 shadow-3xl">
-                        <div
-                            className={"relative h-full w-full rounded-full bg-gradient-to-r from-blue-500 to-blue-950"}
-                            style={{ width: `${uploadPercentage}%` }}
-                        />
+                    <div className='relative flex h-5 w-full overflow-hidden rounded-full bg-gray-200 p-1 shadow-3xl'>
+                        <div className={'relative h-full w-full rounded-full bg-gradient-to-r from-blue-500 to-blue-950'} style={{ width: `${uploadPercentage}%` }} />
                     </div>
                 </div>
             )}
@@ -366,32 +360,20 @@ export default function Storage() {
                 <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
                     <div className='w-full flex items-center justify-between'>
                         <p>Deletando...</p>
-                        <div className="flex justify-center items-center">
-                        <div className="w-4 h-4 border-[1px] border-red-500 border-dashed rounded-full animate-spin"></div>
+                        <div className='flex justify-center items-center'>
+                            <div className='w-4 h-4 border-[1px] border-red-500 border-dashed rounded-full animate-spin'></div>
                         </div>
                     </div>
-                    <div className="relative flex h-5 w-full overflow-hidden rounded-full bg-gray-200 p-1 shadow-3xl">
+                    <div className='relative flex h-5 w-full overflow-hidden rounded-full bg-gray-200 p-1 shadow-3xl'>
                         <div className='w-full h-full rounded-full overflow-hidden'>
-                            <div className="progress relative h-full w-[20%] rounded-full bg-gradient-to-r bg-red-700" />
+                            <div className='progress relative h-full w-[20%] rounded-full bg-gradient-to-r bg-red-700' />
                         </div>
                     </div>
                 </div>
             )}
-            <UploadDialog
-                isOpen={openUploadDialog}
-                mimetype={folder?.type}
-                setOpen={setOpenUploadDialog}
-                onClickSubmit={uploadFileSubmit}
-                fileName={fileName}
-                setFileName={setFileName}
-            />
-            <ContentDialog 
-                file={file}
-                folder={folder}
-                isOpen={openContentDialog}
-                setOpen={setOpenContentDialog}
-                deleteFile={deleteFile}
-            />
+            <UploadDialog isOpen={openUploadDialog} mimetype={folder?.type} setOpen={setOpenUploadDialog} onClickSubmit={uploadFileSubmit} fileName={fileName} setFileName={setFileName} />
+            <ContentDialog file={file} folder={folder} isOpen={openContentDialog} setOpen={setOpenContentDialog} deleteFile={deleteFile} />
+            <ImageConversorDialog isOpen={openImageConversorDialog} setOpen={setOpenImageConversorDialog} />
         </div>
     );
 }
