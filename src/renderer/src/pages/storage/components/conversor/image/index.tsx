@@ -34,6 +34,7 @@ const ImageConversor = ({ children }: RootProps) => {
     return <div className='p-8 bg-gray-100'>{children}</div>;
 };
 
+// eslint-disable-next-line react/display-name
 ImageConversor.Root = ({ children }: RootProps) => {
     const [imageContent, setImageContent] = useState<string>('');
     const [outputUrl, setOutputUrl] = useState<string>('');

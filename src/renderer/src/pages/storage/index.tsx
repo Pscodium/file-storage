@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-empty-interface */
 import { useEffect, useState } from 'react';
 import { Desktop } from './components/desktop';
 import { Files } from './components/files';
@@ -16,6 +17,7 @@ import { FaSyncAlt } from 'react-icons/fa';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
 import { TailSpin } from 'react-loader-spinner';
 import ImageConversorDialog from './components/dialog/imageConversor';
+import SearchInput from './components/search';
 
 export interface StorageProps {}
 
@@ -46,6 +48,10 @@ export default function Storage() {
     const [step, setStep] = useState<WindowSteps>('FOLDERS');
     const [confirming, setConfirming] = useState(false);
     const [timer, setTimer] = useState<null | number>(null);
+    const [fileSearch, setFileSearch] = useState<string>('');
+    const [folderSearch, setFolderSearch] = useState<string>('');
+    const filteredFiles = fileSearch.length > 0 ? files?.filter((file) => file.name.toLowerCase().includes(fileSearch.toLowerCase())) : files;
+    const filteredFolders = folderSearch.length > 0 ? folders.filter((folder) => folder.name.toLowerCase().includes(folderSearch.toLowerCase())) : folders;
 
     useEffect(() => {
         let countdown: NodeJS.Timeout;
@@ -213,6 +219,7 @@ export default function Storage() {
         setFolder(folder);
         setFiles([]);
         setFiles(folder.Files);
+        setFolderSearch('');
     }
 
     async function handleSubmitFile() {
@@ -230,6 +237,7 @@ export default function Storage() {
     function returnToFolders() {
         setStep('FOLDERS');
         setFolder(undefined);
+        setFileSearch('');
     }
 
     const handleDeleteClick = () => {
@@ -289,7 +297,7 @@ export default function Storage() {
                                             <TailSpin visible={true} height='80' width='80' color='#8b8b8b' ariaLabel='tail-spin-loading' radius='1' wrapperStyle={{}} wrapperClass='' />
                                         </div>
                                     )}
-                                    {folders.map((folder, index) => (
+                                    {filteredFolders.map((folder, index) => (
                                         <Folders.Body
                                             hover={folder.name}
                                             key={index}
@@ -302,6 +310,9 @@ export default function Storage() {
                                         </Folders.Body>
                                     ))}
                                 </Folders.Root>
+                                <div className='absolute left-2 bottom-2 w-[20%] min-w-20'>
+                                    <SearchInput input={folderSearch} setInput={setFolderSearch} />
+                                </div>
                             </Desktop.WindowContent>
                         </>
                     )}
@@ -324,7 +335,8 @@ export default function Storage() {
                             <Desktop.WindowContent>
                                 <Files.Root className='flex flex-wrap gap-3'>
                                     {files &&
-                                        files.map((object, index) => (
+                                        filteredFiles &&
+                                        filteredFiles.map((object, index) => (
                                             <Files.Body
                                                 onClick={() => openFileDialog(object)}
                                                 hover={object.name}
@@ -336,6 +348,9 @@ export default function Storage() {
                                             </Files.Body>
                                         ))}
                                 </Files.Root>
+                                <div className='fixed left-2 bottom-2 w-[20%] min-w-20'>
+                                    <SearchInput input={fileSearch} setInput={setFileSearch} />
+                                </div>
                             </Desktop.WindowContent>
                         </>
                     )}

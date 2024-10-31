@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: com.file-storage.app
 productName: File Storage
 directories:
     buildResources: build
