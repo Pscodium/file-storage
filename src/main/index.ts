@@ -1,3 +1,4 @@
+/* eslint-disable no-empty-pattern */
 import { app, shell, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { electronApp, optimizer, is } from '@electron-toolkit/utils';
