@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-empty-interface */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Desktop } from './components/desktop';
 import { Files } from './components/files';
 import { apiService } from '@renderer/services/api';
@@ -14,10 +14,15 @@ import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
 import { IoSend } from 'react-icons/io5';
 import { FaSyncAlt } from 'react-icons/fa';
+import randomColor from 'randomcolor';
+import { FaLock, FaUnlock } from 'react-icons/fa6';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
 import { TailSpin } from 'react-loader-spinner';
 import ImageConversorDialog from './components/dialog/imageConversor';
 import SearchInput from './components/search';
+import { OrderMenu } from '@renderer/components/SortMenu';
+import { useOrder } from '@renderer/contexts/order';
+import { Switch } from '@renderer/components/ui/switch';
 
 export interface StorageProps {}
 
@@ -30,12 +35,15 @@ enum Mimetypes {
 
 export default function Storage() {
     const { user } = useAuth();
+    const { fileOrder, folderOrder, setOrderFile, setOrderFolder } = useOrder();
     const [openUploadDialog, setOpenUploadDialog] = useState(false);
     const [openContentDialog, setOpenContentDialog] = useState(false);
     const [openImageConversorDialog, setOpenImageConversorDialog] = useState(false);
     const [openFolderPopover, setOpenFolderPopover] = useState(false);
     const [folderTitle, setFolderTitle] = useState('');
     const [folderName, setFolderName] = useState('');
+    const [folderPrivate, setFolderPrivate] = useState(false);
+    const [hex, setHex] = useState<string | undefined>(randomColor());
     const [folderType, setFolderType] = useState<FileTypes | undefined>(undefined);
     const [files, setFiles] = useState<IFileResponse | undefined>([]);
     const [file, setFile] = useState<IFile>();
@@ -50,8 +58,12 @@ export default function Storage() {
     const [timer, setTimer] = useState<null | number>(null);
     const [fileSearch, setFileSearch] = useState<string>('');
     const [folderSearch, setFolderSearch] = useState<string>('');
+    const colorPickerRef = useRef<HTMLInputElement>(null);
     const filteredFiles = fileSearch.length > 0 ? files?.filter((file) => file.name.toLowerCase().includes(fileSearch.toLowerCase())) : files;
     const filteredFolders = folderSearch.length > 0 ? folders.filter((folder) => folder.name.toLowerCase().includes(folderSearch.toLowerCase())) : folders;
+
+    const sortedFiles = orderList(filteredFiles || [], fileOrder);
+    const sortedFolders = orderList(filteredFolders || [], folderOrder);
 
     useEffect(() => {
         let countdown: NodeJS.Timeout;
@@ -69,6 +81,33 @@ export default function Storage() {
         getFolders();
         getFiles();
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            getFolders();
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (openFolderPopover) {
+            setHex(randomColor());
+        }
+    }, [openFolderPopover]);
+
+    function orderList(list: IFileResponse | IFolderResponse, criterion: OrderOptions): IFileResponse | IFolderResponse {
+        switch (criterion) {
+            case 'date-ascending':
+                return [...list].sort((a, b) => new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime()) as IFileResponse | IFolderResponse;
+            case 'date-descending':
+                return [...list].sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()) as IFileResponse | IFolderResponse;
+            case 'name-alphabetical':
+                return [...list].sort((a, b) => a.name.localeCompare(b.name)) as IFileResponse | IFolderResponse;
+            case 'name-reverse-alphabetical':
+                return [...list].sort((a, b) => b.name.localeCompare(a.name)) as IFileResponse | IFolderResponse;
+            default:
+                return list;
+        }
+    }
 
     async function getFiles() {
         try {
@@ -197,6 +236,8 @@ export default function Storage() {
             const data = await apiService.createFolder({
                 folderName,
                 type: folderType,
+                privateFolder: folderPrivate,
+                hex,
             });
 
             if (!data) return;
@@ -252,6 +293,10 @@ export default function Storage() {
         }
     };
 
+    const handleColorChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        setHex(ev.target.value);
+    };
+
     return (
         <div className='min-h-screen w-full items-center justify-center'>
             <div className='absolute w-full h-7 drag' />
@@ -259,6 +304,9 @@ export default function Storage() {
                 <Desktop.Window>
                     {step === 'FOLDERS' && (
                         <>
+                            <div className='absolute top-[30px] right-[5px]'>
+                                <OrderMenu actualOrder={folderOrder} onOrder={(newOrder) => setOrderFolder(newOrder)} />
+                            </div>
                             {user && user?.role === 'owner' && (
                                 <div className='no-drag flex items-center gap-2 absolute h-[20px] top-[5px] z-[999] pointer-events-auto ml-1 cursor-pointer'>
                                     <Popover onOpenChange={() => setOpenFolderPopover(!openFolderPopover)} open={openFolderPopover}>
@@ -272,16 +320,41 @@ export default function Storage() {
                                                     <IoSend color='#ffffff' />
                                                 </Button>
                                             </div>
-                                            <Select value={folderType} onValueChange={(value) => setFolderType(value as FileTypes)}>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder='Tipo' />
-                                                </SelectTrigger>
-                                                <SelectContent className='bg-white'>
-                                                    <SelectItem value={Mimetypes.Video}>Video</SelectItem>
-                                                    <SelectItem value={Mimetypes.Audio}>Audio</SelectItem>
-                                                    <SelectItem value={Mimetypes.Image}>Image</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <div className='flex gap-1'>
+                                                <Select value={folderType} onValueChange={(value) => setFolderType(value as FileTypes)}>
+                                                    <SelectTrigger className=''>
+                                                        <SelectValue placeholder='Tipo' />
+                                                    </SelectTrigger>
+                                                    <SelectContent className='bg-white'>
+                                                        <SelectItem value={Mimetypes.Video}>Video</SelectItem>
+                                                        <SelectItem value={Mimetypes.Audio}>Audio</SelectItem>
+                                                        <SelectItem value={Mimetypes.Image}>Image</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <div className='flex flex-col justify-center items-center gap-1 px-[9px]'>
+                                                    {folderPrivate ? <FaLock className='fill-gray-600' /> : <FaUnlock className='fill-gray-600' />}
+                                                    <Switch checked={folderPrivate} onCheckedChange={(check) => setFolderPrivate(check)} color='#000' className='shadow-md' />
+                                                </div>
+                                                <div className='flex flex-col items-center justify-center relative'>
+                                                    <div className='relative'>
+                                                        <input
+                                                            type='color'
+                                                            ref={colorPickerRef}
+                                                            value={hex}
+                                                            onChange={handleColorChange}
+                                                            className='w-6 h-1 cursor-pointer rounded-full border-0 overflow-hidden appearance-none'
+                                                            style={{
+                                                                background: 'transparent',
+                                                            }}
+                                                        />
+                                                        <div
+                                                            onClick={() => colorPickerRef.current?.click()}
+                                                            className='absolute inset-0 z-10 cursor-pointer rounded-full shadow-inner border-2 border-gray-200'
+                                                            style={{ backgroundColor: hex }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </PopoverContent>
                                     </Popover>
                                     <div onClick={() => setOpenImageConversorDialog(true)} className='select-none cursor-pointer'>
@@ -297,18 +370,25 @@ export default function Storage() {
                                             <TailSpin visible={true} height='80' width='80' color='#8b8b8b' ariaLabel='tail-spin-loading' radius='1' wrapperStyle={{}} wrapperClass='' />
                                         </div>
                                     )}
-                                    {filteredFolders.map((folder, index) => (
-                                        <Folders.Body
-                                            hover={folder.name}
-                                            key={index}
-                                            onClick={() => handleOpenFolder(folder)}
-                                            className='p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer'
-                                        >
-                                            <Folders.Icon hex={folder.hex} />
-                                            {folder.filesCount != undefined && <Folders.Badge>{folder.filesCount}</Folders.Badge>}
-                                            <Folders.Title>{folder.name}</Folders.Title>
-                                        </Folders.Body>
-                                    ))}
+                                    {folders &&
+                                        sortedFolders &&
+                                        sortedFolders.map((folder, index) => (
+                                            <Folders.Body
+                                                hover={folder.name}
+                                                key={index}
+                                                onClick={() => handleOpenFolder(folder)}
+                                                className='p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer'
+                                            >
+                                                <Folders.Icon hex={folder.hex} />
+                                                {folder.private && (
+                                                    <Folders.Badge variant='left-bottom'>
+                                                        <FaLock className='fill-yellow-400 h-[8px] w-[8px]' />
+                                                    </Folders.Badge>
+                                                )}
+                                                {folder.filesCount != undefined && <Folders.Badge variant='right-bottom'>{folder.filesCount}</Folders.Badge>}
+                                                <Folders.Title>{folder.name}</Folders.Title>
+                                            </Folders.Body>
+                                        ))}
                                 </Folders.Root>
                                 <div className='absolute left-2 bottom-2 w-[20%] min-w-20'>
                                     <SearchInput input={folderSearch} setInput={setFolderSearch} />
@@ -318,6 +398,9 @@ export default function Storage() {
                     )}
                     {step === 'FILES' && (
                         <>
+                            <div className='absolute top-[30px] right-[5px]'>
+                                <OrderMenu actualOrder={fileOrder} onOrder={(newOrder) => setOrderFile(newOrder)} />
+                            </div>
                             <div onClick={returnToFolders} className='absolute no-drag top-[6px] z-[999] ml-2 cursor-pointer pointer-events-auto'>
                                 <FaArrowLeft />
                             </div>
@@ -335,8 +418,8 @@ export default function Storage() {
                             <Desktop.WindowContent>
                                 <Files.Root className='flex flex-wrap gap-3'>
                                     {files &&
-                                        filteredFiles &&
-                                        filteredFiles.map((object, index) => (
+                                        sortedFiles &&
+                                        sortedFiles.map((object, index) => (
                                             <Files.Body
                                                 onClick={() => openFileDialog(object)}
                                                 hover={object.name}

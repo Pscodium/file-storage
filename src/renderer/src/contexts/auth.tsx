@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 /* eslint-disable no-unused-vars */
 import { useToast } from '@renderer/components/ui/use-toast';
 import useDidMount from '@renderer/hooks/react/useMount';

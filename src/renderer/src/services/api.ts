@@ -182,12 +182,14 @@ class ApiService {
         return res.data;
     }
 
-    async createFolder({ folderName, type }: { folderName: string; type?: FileTypes }) {
+    async createFolder({ folderName, type, privateFolder, hex }: { folderName: string; type?: FileTypes; privateFolder: boolean; hex: string | undefined }) {
         const res = await this.api.post(
             '/storage/folders/create',
             {
                 folderName,
                 type,
+                private: privateFolder,
+                hex,
             },
             {
                 headers: this.getHeaders(),
