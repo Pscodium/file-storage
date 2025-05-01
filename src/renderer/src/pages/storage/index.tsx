@@ -5,7 +5,7 @@ import { Desktop } from './components/desktop';
 import { Files } from './components/files';
 import { apiService } from '@renderer/services/api';
 import { useAuth } from '@renderer/contexts/auth';
-import { FaArrowLeft, FaPlus, FaSquareCheck, FaTrashCan } from 'react-icons/fa6';
+import { FaArrowLeft, FaPlus, FaSquareCheck, FaTrashCan, FaLock, FaUnlock } from 'react-icons/fa6';
 import UploadDialog from './components/dialog/upload';
 import { toast } from '@renderer/components/ui/use-toast';
 import ContentDialog from './components/dialog/content';
@@ -16,7 +16,6 @@ import { Button } from '@renderer/components/ui/button';
 import { IoSend } from 'react-icons/io5';
 import { FaSyncAlt } from 'react-icons/fa';
 import randomColor from 'randomcolor';
-import { FaLock, FaUnlock } from 'react-icons/fa6';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
 import { TailSpin } from 'react-loader-spinner';
 import ImageConversorDialog from './components/dialog/imageConversor';
@@ -25,6 +24,8 @@ import { OrderMenu } from '@renderer/components/SortMenu';
 import { useOrder } from '@renderer/contexts/order';
 import { Switch } from '@renderer/components/ui/switch';
 import { useSocket } from '@renderer/services/socket';
+import DeleteProgress, { FileDeleteProgress } from './components/delete-progress';
+import { FaCheck, FaTrashAlt } from 'react-icons/fa';
 import UploadProgress, { FileUploadProgress } from './components/upload-progress';
 
 export interface StorageProps {}
@@ -50,7 +51,12 @@ export default function Storage() {
     const [folderType, setFolderType] = useState<FileTypes | undefined>(undefined);
     const [files, setFiles] = useState<IFileResponse | undefined>([]);
     const [file, setFile] = useState<IFile>();
+    const [fileNames, setFileNames] = useState<string[]>([]);
     const [hasDelete, setHasDelete] = useState(false);
+    const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [deleteProgressVisible, setDeleteProgressVisible] = useState(false);
+    const [fileDeletes, setFileDeletes] = useState<FileDeleteProgress[]>([]);
     const [folders, setFolders] = useState<IFolderResponse>([]);
     const [folder, setFolder] = useState<IFolder>();
     const [step, setStep] = useState<WindowSteps>('FOLDERS');
@@ -62,7 +68,6 @@ export default function Storage() {
     const filteredFiles = fileSearch.length > 0 ? files?.filter((file) => file.name.toLowerCase().includes(fileSearch.toLowerCase())) : files;
     const filteredFolders = folderSearch.length > 0 ? folders.filter((folder) => folder.name.toLowerCase().includes(folderSearch.toLowerCase())) : folders;
 
-    // Upload progress tracking state
     const [uploadProgressVisible, setUploadProgressVisible] = useState(false);
     const [fileUploads, setFileUploads] = useState<FileUploadProgress[]>([]);
     const { socket, initSocket } = useSocket();
@@ -99,7 +104,155 @@ export default function Storage() {
         }
     }, [openFolderPopover]);
 
-    // WebSocket setup and listeners
+    useEffect(() => {
+        if (socket) {
+            socket.off(`delete-progress-${user?.id}`);
+            socket.off(`delete-complete-${user?.id}`);
+            socket.off(`delete-error-${user?.id}`);
+            socket.off(`delete-all-complete-${user?.id}`);
+        }
+
+        if (user?.id && !socket) {
+            initSocket();
+        }
+
+        if (socket) {
+            socket.on(`delete-progress-${user?.id}`, (data: { deleteId: string; fileId: string; fileName?: string; progress: number; index: number; total: number }) => {
+                setFileDeletes((prevDeletes) => {
+                    const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
+
+                    if (existingIndex >= 0) {
+                        if (prevDeletes[existingIndex].progress === data.progress) {
+                            return prevDeletes;
+                        }
+
+                        const newDeletes = [...prevDeletes];
+                        newDeletes[existingIndex] = {
+                            ...newDeletes[existingIndex],
+                            progress: data.progress,
+                            fileName: data.fileName || newDeletes[existingIndex].fileName,
+                            status: data.progress === 100 ? 'complete' : 'deleting',
+                        };
+                        return newDeletes;
+                    } else {
+                        return [
+                            ...prevDeletes,
+                            {
+                                deleteId: data.deleteId,
+                                fileId: data.fileId,
+                                fileName: data.fileName,
+                                progress: data.progress,
+                                status: 'deleting',
+                                index: data.index,
+                                total: data.total,
+                            },
+                        ];
+                    }
+                });
+
+                setDeleteProgressVisible(true);
+            });
+
+            socket.on(`delete-complete-${user?.id}`, (data: { deleteId: string; fileId: string; fileName?: string; index: number }) => {
+                setFileDeletes((prevDeletes) => {
+                    const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
+
+                    if (existingIndex >= 0) {
+                        if (prevDeletes[existingIndex].status === 'complete' && prevDeletes[existingIndex].progress === 100) {
+                            return prevDeletes;
+                        }
+
+                        const newDeletes = [...prevDeletes];
+                        newDeletes[existingIndex] = {
+                            ...newDeletes[existingIndex],
+                            progress: 100,
+                            status: 'complete',
+                            fileName: data.fileName || newDeletes[existingIndex].fileName,
+                        };
+                        return newDeletes;
+                    }
+                    return prevDeletes;
+                });
+            });
+
+            socket.on(`delete-error-${user?.id}`, (data: { deleteId?: string; fileId?: string; fileName?: string; error: string; index?: number }) => {
+                if (data.deleteId) {
+                    setFileDeletes((prevDeletes) => {
+                        const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
+
+                        if (existingIndex >= 0) {
+                            const newDeletes = [...prevDeletes];
+                            newDeletes[existingIndex] = {
+                                ...newDeletes[existingIndex],
+                                status: 'error',
+                                error: data.error,
+                                fileName: data.fileName || newDeletes[existingIndex].fileName,
+                            };
+                            return newDeletes;
+                        }
+                        return prevDeletes;
+                    });
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'ERRO',
+                        description: data.error || 'Erro durante a exclusão',
+                        className: 'outline-none border-none bg-red-600 text-white',
+                    });
+                }
+            });
+
+            socket.on(`delete-all-complete-${user?.id}`, async (data: { sessionId: string; folderId: string; folderData?: IFolder; totalFiles: number; deletedFiles: string[] }) => {
+                setFileDeletes((prevDeletes) =>
+                    prevDeletes.map((del) => ({
+                        ...del,
+                        status: del.status === 'deleting' ? 'complete' : del.status,
+                        progress: del.status === 'deleting' ? 100 : del.progress,
+                    }))
+                );
+
+                await getFolders();
+
+                if (folder) {
+                    const updatedFolders = await getFolders();
+                    if (updatedFolders) {
+                        const currentFolder = updatedFolders.find((f) => f.id === folder.id);
+                        if (currentFolder) {
+                            setFolder(currentFolder);
+                            setFiles(currentFolder.Files || []);
+                        }
+                    }
+                }
+
+                setSelectedFiles([]);
+                setSelectionMode(false);
+
+                toast({
+                    variant: 'destructive',
+                    title: 'SUCESSO',
+                    description: `${data.totalFiles} arquivo(s) excluído(s) com sucesso`,
+                    className: 'outline-none border-none bg-green-600 text-white',
+                });
+
+                setTimeout(() => {
+                    if (fileDeletes.every((f) => f.status !== 'deleting')) {
+                        setDeleteProgressVisible(false);
+                        setFileDeletes([]);
+                    }
+                }, 5000);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off(`delete-progress-${user?.id}`);
+                socket.off(`delete-complete-${user?.id}`);
+                socket.off(`delete-error-${user?.id}`);
+                socket.off(`delete-all-complete-${user?.id}`);
+            }
+        };
+    }, [socket, user?.id]);
+
     useEffect(() => {
         if (socket) {
             socket.off(`upload-progress-${user?.id}`);
@@ -108,23 +261,18 @@ export default function Storage() {
             socket.off(`upload-all-complete-${user?.id}`);
         }
 
-        // Inicializar socket se necessário
         if (user?.id && !socket) {
             initSocket();
         }
 
         if (socket) {
-            // Progress event handler - Modificado para evitar duplicações
             socket.on(`upload-progress-${user?.id}`, (data: { fileId: string; fileName: string; progress: number; index: number; total: number }) => {
                 setFileUploads((prevUploads) => {
-                    // Verificar se já existe esse arquivo no estado
                     const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
 
-                    // Se já existe, atualizar apenas o progresso
                     if (existingIndex >= 0) {
-                        // Evitar criar objeto novo se o progresso for o mesmo
                         if (prevUploads[existingIndex].progress === data.progress) {
-                            return prevUploads; // Retornar o mesmo array sem mudanças
+                            return prevUploads;
                         }
 
                         const newUploads = [...prevUploads];
@@ -135,14 +283,11 @@ export default function Storage() {
                         };
                         return newUploads;
                     } else {
-                        // Adicionar novo arquivo se não existir
-                        // Verificar se o número total já está correto
                         if (prevUploads.length >= data.total) {
                             console.warn('Tentando adicionar mais arquivos do que o esperado', {
                                 current: prevUploads.length,
                                 expected: data.total,
                             });
-                            // Retornar o array atual sem adicionar
                             return prevUploads;
                         }
 
@@ -163,15 +308,13 @@ export default function Storage() {
                 setUploadProgressVisible(true);
             });
 
-            // Complete event - Modificado para evitar manipulações desnecessárias
             socket.on(`upload-complete-${user?.id}`, (data: { fileId: string; fileName: string; index: number }) => {
                 setFileUploads((prevUploads) => {
                     const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
 
                     if (existingIndex >= 0) {
-                        // Só atualizar se o status não for já "complete"
                         if (prevUploads[existingIndex].status === 'complete' && prevUploads[existingIndex].progress === 100) {
-                            return prevUploads; // Evitar re-render desnecessário
+                            return prevUploads;
                         }
 
                         const newUploads = [...prevUploads];
@@ -213,9 +356,7 @@ export default function Storage() {
                 }
             });
 
-            // Evento de conclusão de todos os uploads - agora atualiza os dados explicitamente
             socket.on(`upload-all-complete-${user?.id}`, async (data: { folderId: string; totalFiles: number; filesData: any[]; folderData?: IFolder }) => {
-                // Atualize o estado para mostrar que todos os uploads estão completos
                 setFileUploads((prevUploads) =>
                     prevUploads.map((upload) => ({
                         ...upload,
@@ -224,24 +365,19 @@ export default function Storage() {
                     }))
                 );
 
-                // Recarregar os dados explicitamente
                 await getFolders();
 
-                // Se estiver em uma pasta, atualizar também os arquivos dessa pasta
                 if (folder) {
-                    // Buscar a pasta atualizada nos dados
                     const updatedFolders = await getFolders();
                     if (updatedFolders) {
                         const currentFolder = updatedFolders.find((f) => f.id === folder.id);
                         if (currentFolder) {
-                            // Atualizar a pasta atual e seus arquivos
                             setFolder(currentFolder);
                             setFiles(currentFolder.Files || []);
                         }
                     }
                 }
 
-                // Notificar o usuário do sucesso
                 toast({
                     variant: 'destructive',
                     title: 'SUCESSO',
@@ -249,7 +385,6 @@ export default function Storage() {
                     className: 'outline-none border-none bg-green-600 text-white',
                 });
 
-                // Após 5 segundos, esconder o painel de progresso
                 setTimeout(() => {
                     if (fileUploads.every((f) => f.status !== 'uploading')) {
                         setUploadProgressVisible(false);
@@ -267,7 +402,7 @@ export default function Storage() {
                 socket.off(`upload-all-complete-${user?.id}`);
             }
         };
-    }, [socket, user?.id, folder]); // Adicionando folder como dependência
+    }, [socket, user?.id, folder]);
 
     function orderList(list: IFileResponse | IFolderResponse, criterion: OrderOptions): IFileResponse | IFolderResponse {
         switch (criterion) {
@@ -311,39 +446,81 @@ export default function Storage() {
         }
     }
 
-    // Função atualizada para upload de múltiplos arquivos
     async function uploadMultipleFiles(files: File[]) {
         try {
             if (!files.length || !folder) return;
             setOpenUploadDialog(false);
 
-            // Limpar os uploads anteriores antes de começar novos
             setFileUploads([]);
             setUploadProgressVisible(true);
 
-            // Criar IDs únicos para cada arquivo
             const timestamp = Date.now();
             const initialUploads = files.map((file, index) => ({
-                fileId: `${timestamp}-${index}`, // Usar mesmo timestamp para todos evita duplicações
-                fileName: file.name,
+                fileId: `${timestamp}-${index}`,
+                fileName: fileNames[index] || file.name,
                 progress: 0,
                 status: 'uploading' as const,
                 index,
                 total: files.length,
             }));
 
-            // Definir o estado inicial uma única vez
             setFileUploads(initialUploads);
 
-            // Iniciar upload
-            await apiService.uploadMultipleFiles(files, folder.id);
-
-            // O resto do rastreamento de progresso é tratado por eventos WebSocket
+            await apiService.uploadMultipleFiles(files, folder.id, fileNames);
         } catch (err) {
             toast({
                 variant: 'destructive',
                 title: 'ERRO',
                 description: 'Erro ao tentar enviar os arquivos',
+                className: 'outline-none border-none bg-red-600 text-white',
+            });
+
+            console.error(err);
+        }
+    }
+
+    function toggleSelectionMode() {
+        setSelectionMode(!selectionMode);
+        if (selectionMode) {
+            setSelectedFiles([]);
+        }
+    }
+
+    function toggleFileSelection(fileId: string) {
+        if (selectedFiles.includes(fileId)) {
+            setSelectedFiles(selectedFiles.filter((id) => id !== fileId));
+        } else {
+            setSelectedFiles([...selectedFiles, fileId]);
+        }
+    }
+
+    function selectAllFiles() {
+        if (files?.length) {
+            if (selectedFiles.length === files.length) {
+                setSelectedFiles([]);
+            } else {
+                setSelectedFiles(files.map((file) => file.id));
+            }
+        }
+    }
+
+    async function deleteMultipleFiles() {
+        try {
+            if (!selectedFiles.length || !folder) return;
+
+            if (!window.confirm(`Tem certeza que deseja excluir ${selectedFiles.length} arquivo(s)?`)) {
+                return;
+            }
+
+            setFileDeletes([]);
+            setDeleteProgressVisible(true);
+
+            await apiService.deleteMultipleFiles(selectedFiles, folder.id);
+        } catch (err) {
+            toast({
+                variant: 'destructive',
+                title: 'ERRO',
+                description: 'Erro ao tentar excluir os arquivos',
                 className: 'outline-none border-none bg-red-600 text-white',
             });
 
@@ -569,17 +746,46 @@ export default function Storage() {
                             <div className='absolute top-[30px] right-[5px]'>
                                 <OrderMenu actualOrder={fileOrder} onOrder={(newOrder) => setOrderFile(newOrder)} />
                             </div>
-                            <div onClick={returnToFolders} className='absolute no-drag top-[6px] z-[999] ml-2 cursor-pointer pointer-events-auto'>
+                            <div onClick={returnToFolders} className='absolute no-drag top-[6px] z-[999] ml-[8px] cursor-pointer pointer-events-auto'>
                                 <FaArrowLeft />
                             </div>
                             {user && user?.role === 'owner' && (
                                 <>
-                                    <div onClick={() => setOpenUploadDialog(true)} className='absolute h-[20px] no-drag top-[6px] z-[9999] ml-9 cursor-pointer pointer-events-auto'>
+                                    <div onClick={() => setOpenUploadDialog(true)} className='absolute h-[20px] no-drag top-[6px] z-[9999] ml-[36px] cursor-pointer pointer-events-auto'>
                                         <FaPlus />
                                     </div>
-                                    <div onClick={handleDeleteClick} className='absolute no-drag top-[6px] z-[999] h-[20px] ml-[70px] cursor-pointer pointer-events-auto'>
+
+                                    <div onClick={handleDeleteClick} className='absolute no-drag top-[6px] z-[999] h-[20px] ml-[64px] cursor-pointer pointer-events-auto'>
                                         {confirming ? <FaSquareCheck color='#ffcc00' className='h-4 w-4' /> : <FaTrashCan color='#FF3366' className='h-4 w-4' />}
                                     </div>
+
+                                    <div onClick={toggleSelectionMode} className='absolute no-drag top-[6px] z-[999] h-[20px] ml-[92px] cursor-pointer pointer-events-auto'>
+                                        <FaCheck className={`h-4 w-4 ${selectionMode ? 'text-blue-500' : 'text-gray-500'}`} />
+                                    </div>
+
+                                    {selectionMode && (
+                                        <div className='absolute no-drag top-[30px] z-[999] right-[45px] flex gap-2 cursor-pointer pointer-events-auto bg-white px-2 py-1 rounded-md shadow-sm'>
+                                            <button
+                                                onClick={selectAllFiles}
+                                                className='text-xs flex items-center'
+                                                title={selectedFiles.length === (files?.length || 0) ? 'Desmarcar todos' : 'Selecionar todos'}
+                                            >
+                                                <FaCheck className={`mr-1 h-3 w-3 ${selectedFiles.length === (files?.length || 0) ? 'text-blue-500' : 'text-gray-500'}`} />
+                                                {selectedFiles.length === (files?.length || 0) ? 'Desmarcar todos' : 'Selecionar todos'}
+                                            </button>
+
+                                            {selectedFiles.length > 0 && (
+                                                <button
+                                                    onClick={deleteMultipleFiles}
+                                                    className='text-xs flex items-center text-red-500 hover:text-red-700'
+                                                    title={`Excluir ${selectedFiles.length} arquivo(s)`}
+                                                >
+                                                    <FaTrashAlt className='mr-1 h-3 w-3' />
+                                                    Excluir ({selectedFiles.length})
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </>
                             )}
                             <Desktop.WindowHeader>{folderTitle}</Desktop.WindowHeader>
@@ -589,10 +795,13 @@ export default function Storage() {
                                         sortedFiles &&
                                         sortedFiles.map((object, index) => (
                                             <Files.Body
-                                                onClick={() => openFileDialog(object)}
                                                 hover={object.name}
                                                 key={index}
+                                                onClick={() => openFileDialog(object)}
                                                 className='p-5 hover:bg-blue-gray-50 w-32 rounded-md text-center relative cursor-pointer'
+                                                selectionMode={selectionMode}
+                                                isSelected={selectedFiles.includes(object.id)}
+                                                onSelect={() => toggleFileSelection(object.id)}
                                             >
                                                 <Files.Icon url={object.url} type={folder?.type} />
                                                 {folder?.type && folder.type !== 'video/*' && <Files.Title>{object.name}</Files.Title>}
@@ -605,13 +814,13 @@ export default function Storage() {
                             </Desktop.WindowContent>
                         </>
                     )}
+
+                    {deleteProgressVisible && <DeleteProgress files={fileDeletes} onClose={() => setDeleteProgressVisible(false)} />}
                 </Desktop.Window>
             </Desktop.Root>
 
-            {/* Componente de progresso de upload múltiplo */}
             {uploadProgressVisible && <UploadProgress files={fileUploads} onClose={() => setUploadProgressVisible(false)} />}
 
-            {/* Interface de deleção */}
             {hasDelete && (
                 <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
                     <div className='w-full flex items-center justify-between'>
@@ -628,8 +837,7 @@ export default function Storage() {
                 </div>
             )}
 
-            {/* Diálogos */}
-            <UploadDialog isOpen={openUploadDialog} mimetype={folder?.type} setOpen={setOpenUploadDialog} onClickSubmit={uploadMultipleFiles} />
+            <UploadDialog isOpen={openUploadDialog} mimetype={folder?.type} setOpen={setOpenUploadDialog} onClickSubmit={uploadMultipleFiles} setFileNames={setFileNames} fileNames={fileNames} />
             <ContentDialog file={file} folder={folder} isOpen={openContentDialog} setOpen={setOpenContentDialog} deleteFile={deleteFile} />
             <ImageConversorDialog isOpen={openImageConversorDialog} setOpen={setOpenImageConversorDialog} />
         </div>

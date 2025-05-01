@@ -206,6 +206,37 @@ class ApiService {
         return res.data;
     }
 
+    /**
+     * Delete multiple files with WebSocket progress tracking
+     * @param {string[]} fileIds IDs dos arquivos a serem excluídos
+     * @param {string} folderId ID da pasta que contém os arquivos
+     * @returns {Promise<{success: boolean, deletedCount: number, deletedFiles: string[]}>}
+     */
+    async deleteMultipleFiles(fileIds: string[], folderId: string): Promise<{ success: boolean; deletedCount: number; deletedFiles: string[] }> {
+        try {
+            const res = await this.api.post(
+                '/storage/delete/bulk',
+                {
+                    fileIds,
+                    folderId,
+                },
+                {
+                    headers: this.getHeaders('application/json'),
+                    withCredentials: true,
+                }
+            );
+
+            if (res.status !== 200) {
+                throw new Error('Unexpected error during file deletion');
+            }
+
+            return res.data;
+        } catch (error) {
+            console.error('Error deleting files:', error);
+            throw error;
+        }
+    }
+
     async getFolders(): Promise<IFolderResponse> {
         const res = await this.api.get(`/storage/folders`);
 

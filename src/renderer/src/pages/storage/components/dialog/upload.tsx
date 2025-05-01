@@ -9,28 +9,27 @@ import { FaTrashCan } from 'react-icons/fa6';
 export interface UploadDialogProps {
     setOpen: React.Dispatch<React.SetStateAction<boolean>>;
     isOpen: boolean;
+    setFileNames: React.Dispatch<React.SetStateAction<string[]>>;
+    fileNames: string[];
     onClickSubmit: (files: File[]) => void;
     mimetype?: FileTypes | undefined;
 }
 
-export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype }: UploadDialogProps) {
+export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype, fileNames, setFileNames }: UploadDialogProps) {
     const [files, setFiles] = useState<File[]>([]);
     const [fileUrls, setFileUrls] = useState<string[]>([]);
-    const [fileNames, setFileNames] = useState<string[]>([]);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         setFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
 
-        // Generate preview URLs for each file
         const urls = acceptedFiles.map((file) => URL.createObjectURL(file));
         setFileUrls((prevUrls) => [...prevUrls, ...urls]);
 
-        // Initialize file names
         setFileNames((prevNames) => [
             ...prevNames,
             ...acceptedFiles.map((file) => {
                 const nameParts = file.name.split('.');
-                nameParts.pop(); // Remove extension
+                nameParts.pop();
                 return nameParts.join('.');
             }),
         ]);
@@ -41,21 +40,18 @@ export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype 
         accept: {
             [mimetype as string]: [],
         },
-        multiple: true, // Enable multiple file selection
+        multiple: true,
     });
 
     const { getRootProps, getInputProps, isDragActive } = dropzone;
 
     const handleRemoveFile = (index: number) => {
-        // Remove file
         setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
 
-        // Clean up URL object to avoid memory leaks
         if (fileUrls[index]) {
             URL.revokeObjectURL(fileUrls[index]);
         }
 
-        // Remove URL and name
         setFileUrls((prevUrls) => prevUrls.filter((_, i) => i !== index));
         setFileNames((prevNames) => prevNames.filter((_, i) => i !== index));
     };
@@ -70,7 +66,6 @@ export default function UploadDialog({ isOpen, setOpen, onClickSubmit, mimetype 
 
     useEffect(() => {
         if (!isOpen) {
-            // Clean up when dialog closes
             fileUrls.forEach((url) => URL.revokeObjectURL(url));
             setFiles([]);
             setFileUrls([]);
