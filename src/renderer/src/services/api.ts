@@ -160,6 +160,40 @@ class ApiService {
         return res.data;
     }
 
+    async uploadMultipleFiles(files: File[], folderId: string, fileNames?: string[]): Promise<IFile[]> {
+        const formData = new FormData();
+
+        files.forEach((file, index) => {
+            const fileNameWithoutExtension = file.name.split('.');
+            const extension = fileNameWithoutExtension.pop();
+
+            const customFileName = fileNames && fileNames[index] ? `${fileNames[index]}-${Date.now()}.${extension}` : `${fileNameWithoutExtension.join('.')}-${Date.now()}.${extension}`;
+
+            const renamedFile = new File([file], customFileName, { type: file.type });
+
+            formData.append('media', renamedFile);
+        });
+
+        try {
+            const res = await this.api.post(`/storage/upload/${folderId}`, formData, {
+                headers: {
+                    ...this.getHeaders(),
+                    'Content-Type': undefined,
+                },
+                withCredentials: true,
+            });
+
+            if (res.status !== 200) {
+                throw new Error('Unexpected error during file upload');
+            }
+
+            return res.data;
+        } catch (error) {
+            console.error('Error uploading files:', error);
+            throw error;
+        }
+    }
+
     async deleteFile(id: string, folderId: string): Promise<IFile> {
         const res = await this.api.delete(`/storage/delete/${id}/folder/${folderId}`, {
             headers: this.getHeaders(),

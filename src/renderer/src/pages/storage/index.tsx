@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-empty-interface */
 import { useEffect, useRef, useState } from 'react';
 import { Desktop } from './components/desktop';
@@ -23,6 +24,8 @@ import SearchInput from './components/search';
 import { OrderMenu } from '@renderer/components/SortMenu';
 import { useOrder } from '@renderer/contexts/order';
 import { Switch } from '@renderer/components/ui/switch';
+import { useSocket } from '@renderer/services/socket';
+import UploadProgress, { FileUploadProgress } from './components/upload-progress';
 
 export interface StorageProps {}
 
@@ -47,10 +50,7 @@ export default function Storage() {
     const [folderType, setFolderType] = useState<FileTypes | undefined>(undefined);
     const [files, setFiles] = useState<IFileResponse | undefined>([]);
     const [file, setFile] = useState<IFile>();
-    const [fileName, setFileName] = useState<string | undefined>();
-    const [uploadPercentage, setUploadPercentage] = useState(0);
     const [hasDelete, setHasDelete] = useState(false);
-    const [hasUpload, setHasUpload] = useState(false);
     const [folders, setFolders] = useState<IFolderResponse>([]);
     const [folder, setFolder] = useState<IFolder>();
     const [step, setStep] = useState<WindowSteps>('FOLDERS');
@@ -61,6 +61,11 @@ export default function Storage() {
     const colorPickerRef = useRef<HTMLInputElement>(null);
     const filteredFiles = fileSearch.length > 0 ? files?.filter((file) => file.name.toLowerCase().includes(fileSearch.toLowerCase())) : files;
     const filteredFolders = folderSearch.length > 0 ? folders.filter((folder) => folder.name.toLowerCase().includes(folderSearch.toLowerCase())) : folders;
+
+    // Upload progress tracking state
+    const [uploadProgressVisible, setUploadProgressVisible] = useState(false);
+    const [fileUploads, setFileUploads] = useState<FileUploadProgress[]>([]);
+    const { socket, initSocket } = useSocket();
 
     const sortedFiles = orderList(filteredFiles || [], fileOrder);
     const sortedFolders = orderList(filteredFolders || [], folderOrder);
@@ -93,6 +98,176 @@ export default function Storage() {
             setHex(randomColor());
         }
     }, [openFolderPopover]);
+
+    // WebSocket setup and listeners
+    useEffect(() => {
+        if (socket) {
+            socket.off(`upload-progress-${user?.id}`);
+            socket.off(`upload-complete-${user?.id}`);
+            socket.off(`upload-error-${user?.id}`);
+            socket.off(`upload-all-complete-${user?.id}`);
+        }
+
+        // Inicializar socket se necessário
+        if (user?.id && !socket) {
+            initSocket();
+        }
+
+        if (socket) {
+            // Progress event handler - Modificado para evitar duplicações
+            socket.on(`upload-progress-${user?.id}`, (data: { fileId: string; fileName: string; progress: number; index: number; total: number }) => {
+                setFileUploads((prevUploads) => {
+                    // Verificar se já existe esse arquivo no estado
+                    const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
+
+                    // Se já existe, atualizar apenas o progresso
+                    if (existingIndex >= 0) {
+                        // Evitar criar objeto novo se o progresso for o mesmo
+                        if (prevUploads[existingIndex].progress === data.progress) {
+                            return prevUploads; // Retornar o mesmo array sem mudanças
+                        }
+
+                        const newUploads = [...prevUploads];
+                        newUploads[existingIndex] = {
+                            ...newUploads[existingIndex],
+                            progress: data.progress,
+                            status: data.progress === 100 ? 'complete' : 'uploading',
+                        };
+                        return newUploads;
+                    } else {
+                        // Adicionar novo arquivo se não existir
+                        // Verificar se o número total já está correto
+                        if (prevUploads.length >= data.total) {
+                            console.warn('Tentando adicionar mais arquivos do que o esperado', {
+                                current: prevUploads.length,
+                                expected: data.total,
+                            });
+                            // Retornar o array atual sem adicionar
+                            return prevUploads;
+                        }
+
+                        return [
+                            ...prevUploads,
+                            {
+                                fileId: data.fileId,
+                                fileName: data.fileName,
+                                progress: data.progress,
+                                status: 'uploading',
+                                index: data.index,
+                                total: data.total,
+                            },
+                        ];
+                    }
+                });
+
+                setUploadProgressVisible(true);
+            });
+
+            // Complete event - Modificado para evitar manipulações desnecessárias
+            socket.on(`upload-complete-${user?.id}`, (data: { fileId: string; fileName: string; index: number }) => {
+                setFileUploads((prevUploads) => {
+                    const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
+
+                    if (existingIndex >= 0) {
+                        // Só atualizar se o status não for já "complete"
+                        if (prevUploads[existingIndex].status === 'complete' && prevUploads[existingIndex].progress === 100) {
+                            return prevUploads; // Evitar re-render desnecessário
+                        }
+
+                        const newUploads = [...prevUploads];
+                        newUploads[existingIndex] = {
+                            ...newUploads[existingIndex],
+                            progress: 100,
+                            status: 'complete',
+                        };
+                        return newUploads;
+                    }
+                    return prevUploads;
+                });
+            });
+
+            // Error handler
+            socket.on(`upload-error-${user?.id}`, (data: { fileId?: string; fileName?: string; error: string; index?: number }) => {
+                if (data.fileId) {
+                    setFileUploads((prevUploads) => {
+                        const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
+
+                        if (existingIndex >= 0) {
+                            const newUploads = [...prevUploads];
+                            newUploads[existingIndex] = {
+                                ...newUploads[existingIndex],
+                                status: 'error',
+                                error: data.error,
+                            };
+                            return newUploads;
+                        }
+                        return prevUploads;
+                    });
+                } else {
+                    toast({
+                        variant: 'destructive',
+                        title: 'ERRO',
+                        description: data.error || 'Erro durante o upload',
+                        className: 'outline-none border-none bg-red-600 text-white',
+                    });
+                }
+            });
+
+            // Evento de conclusão de todos os uploads - agora atualiza os dados explicitamente
+            socket.on(`upload-all-complete-${user?.id}`, async (data: { folderId: string; totalFiles: number; filesData: any[]; folderData?: IFolder }) => {
+                // Atualize o estado para mostrar que todos os uploads estão completos
+                setFileUploads((prevUploads) =>
+                    prevUploads.map((upload) => ({
+                        ...upload,
+                        status: upload.status === 'uploading' ? 'complete' : upload.status,
+                        progress: upload.status === 'uploading' ? 100 : upload.progress,
+                    }))
+                );
+
+                // Recarregar os dados explicitamente
+                await getFolders();
+
+                // Se estiver em uma pasta, atualizar também os arquivos dessa pasta
+                if (folder) {
+                    // Buscar a pasta atualizada nos dados
+                    const updatedFolders = await getFolders();
+                    if (updatedFolders) {
+                        const currentFolder = updatedFolders.find((f) => f.id === folder.id);
+                        if (currentFolder) {
+                            // Atualizar a pasta atual e seus arquivos
+                            setFolder(currentFolder);
+                            setFiles(currentFolder.Files || []);
+                        }
+                    }
+                }
+
+                // Notificar o usuário do sucesso
+                toast({
+                    variant: 'destructive',
+                    title: 'SUCESSO',
+                    description: `${data.totalFiles} arquivo(s) enviado(s) com sucesso`,
+                    className: 'outline-none border-none bg-green-600 text-white',
+                });
+
+                // Após 5 segundos, esconder o painel de progresso
+                setTimeout(() => {
+                    if (fileUploads.every((f) => f.status !== 'uploading')) {
+                        setUploadProgressVisible(false);
+                        setFileUploads([]);
+                    }
+                }, 5000);
+            });
+        }
+
+        return () => {
+            if (socket) {
+                socket.off(`upload-progress-${user?.id}`);
+                socket.off(`upload-complete-${user?.id}`);
+                socket.off(`upload-error-${user?.id}`);
+                socket.off(`upload-all-complete-${user?.id}`);
+            }
+        };
+    }, [socket, user?.id, folder]); // Adicionando folder como dependência
 
     function orderList(list: IFileResponse | IFolderResponse, criterion: OrderOptions): IFileResponse | IFolderResponse {
         switch (criterion) {
@@ -136,34 +311,39 @@ export default function Storage() {
         }
     }
 
-    function updateUploadPercentage(percentage: number) {
-        setUploadPercentage(percentage);
-    }
-
-    async function uploadFileSubmit(file: File | undefined) {
+    // Função atualizada para upload de múltiplos arquivos
+    async function uploadMultipleFiles(files: File[]) {
         try {
-            if (!file || !folder) return;
+            if (!files.length || !folder) return;
             setOpenUploadDialog(false);
-            setHasUpload(true);
 
-            const uploaded = await apiService.uploadFile(file, folder.id, updateUploadPercentage, fileName);
+            // Limpar os uploads anteriores antes de começar novos
+            setFileUploads([]);
+            setUploadProgressVisible(true);
 
-            if (uploaded) {
-                toast({
-                    variant: 'destructive',
-                    title: 'SUCESSO',
-                    description: 'O arquivo foi enviado com sucesso',
-                    className: 'outline-none border-none bg-green-600 text-white',
-                });
-                setHasUpload(false);
-                setUploadPercentage(0);
-                handleSubmitFile();
-            }
+            // Criar IDs únicos para cada arquivo
+            const timestamp = Date.now();
+            const initialUploads = files.map((file, index) => ({
+                fileId: `${timestamp}-${index}`, // Usar mesmo timestamp para todos evita duplicações
+                fileName: file.name,
+                progress: 0,
+                status: 'uploading' as const,
+                index,
+                total: files.length,
+            }));
+
+            // Definir o estado inicial uma única vez
+            setFileUploads(initialUploads);
+
+            // Iniciar upload
+            await apiService.uploadMultipleFiles(files, folder.id);
+
+            // O resto do rastreamento de progresso é tratado por eventos WebSocket
         } catch (err) {
             toast({
                 variant: 'destructive',
                 title: 'ERRO',
-                description: 'Erro ao tentar enviar o arquivo',
+                description: 'Erro ao tentar enviar os arquivos',
                 className: 'outline-none border-none bg-red-600 text-white',
             });
 
@@ -186,7 +366,7 @@ export default function Storage() {
                 className: 'outline-none border-none bg-green-600 text-white',
             });
             setHasDelete(false);
-            // setStep('FOLDERS');
+
             const newFolders = await getFolders();
             if (folder && newFolders) {
                 const foundFolder = newFolders.find((f) => f.id === folder?.id);
@@ -261,18 +441,6 @@ export default function Storage() {
         setFiles([]);
         setFiles(folder.Files);
         setFolderSearch('');
-    }
-
-    async function handleSubmitFile() {
-        // setStep('FOLDERS')
-        const newFolders = await getFolders();
-        if (folder && newFolders) {
-            const foundFolder = newFolders.find((f) => f.id === folder?.id);
-            if (foundFolder) {
-                handleOpenFolder(foundFolder);
-                setStep('FILES');
-            }
-        }
     }
 
     function returnToFolders() {
@@ -439,21 +607,11 @@ export default function Storage() {
                     )}
                 </Desktop.Window>
             </Desktop.Root>
-            {hasUpload && (
-                <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
-                    <div className='w-full flex items-center justify-between'>
-                        <p>
-                            Uploading... <b>{uploadPercentage}%</b>
-                        </p>
-                        <div className='flex justify-center items-center'>
-                            <div className='w-4 h-4 border-[1px] border-blue-500 border-dashed rounded-full animate-spin'></div>
-                        </div>
-                    </div>
-                    <div className='relative flex h-5 w-full overflow-hidden rounded-full bg-gray-200 p-1 shadow-3xl'>
-                        <div className={'relative h-full w-full rounded-full bg-gradient-to-r from-blue-500 to-blue-950'} style={{ width: `${uploadPercentage}%` }} />
-                    </div>
-                </div>
-            )}
+
+            {/* Componente de progresso de upload múltiplo */}
+            {uploadProgressVisible && <UploadProgress files={fileUploads} onClose={() => setUploadProgressVisible(false)} />}
+
+            {/* Interface de deleção */}
             {hasDelete && (
                 <div className='absolute animate-fade-up bg-gray-50 flex flex-col gap-3 border-gray-100 border-1 py-1 px-3 border shadow-lg rounded-lg w-1/2 bottom-5 inset-x-1/4'>
                     <div className='w-full flex items-center justify-between'>
@@ -469,7 +627,9 @@ export default function Storage() {
                     </div>
                 </div>
             )}
-            <UploadDialog isOpen={openUploadDialog} mimetype={folder?.type} setOpen={setOpenUploadDialog} onClickSubmit={uploadFileSubmit} fileName={fileName} setFileName={setFileName} />
+
+            {/* Diálogos */}
+            <UploadDialog isOpen={openUploadDialog} mimetype={folder?.type} setOpen={setOpenUploadDialog} onClickSubmit={uploadMultipleFiles} />
             <ContentDialog file={file} folder={folder} isOpen={openContentDialog} setOpen={setOpenContentDialog} deleteFile={deleteFile} />
             <ImageConversorDialog isOpen={openImageConversorDialog} setOpen={setOpenImageConversorDialog} />
         </div>
