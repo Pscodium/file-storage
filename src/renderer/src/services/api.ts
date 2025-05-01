@@ -160,19 +160,25 @@ class ApiService {
         return res.data;
     }
 
-    async uploadMultipleFiles(files: File[], folderId: string, fileNames?: string[]): Promise<IFile[]> {
+    async uploadMultipleFilesWithIds(files: File[], folderId: string, fileIds: string[], fileNames?: string[]): Promise<IFile[]> {
         const formData = new FormData();
 
         files.forEach((file, index) => {
-            const fileNameWithoutExtension = file.name.split('.');
-            const extension = fileNameWithoutExtension.pop();
+            const extension = file.name.split('.').pop();
 
-            const customFileName = fileNames && fileNames[index] ? `${fileNames[index]}-${Date.now()}.${extension}` : `${fileNameWithoutExtension.join('.')}-${Date.now()}.${extension}`;
+            let finalFileName: string;
+            if (fileNames && fileNames[index]) {
+                finalFileName = fileNames[index].includes(`.${extension}`) ? fileNames[index] : `${fileNames[index]}.${extension}`;
+            } else {
+                finalFileName = file.name;
+            }
 
-            const renamedFile = new File([file], customFileName, { type: file.type });
+            const renamedFile = new File([file], finalFileName, { type: file.type });
 
             formData.append('media', renamedFile);
         });
+
+        formData.append('fileIds', JSON.stringify(fileIds));
 
         try {
             const res = await this.api.post(`/storage/upload/${folderId}`, formData, {
@@ -212,13 +218,14 @@ class ApiService {
      * @param {string} folderId ID da pasta que contém os arquivos
      * @returns {Promise<{success: boolean, deletedCount: number, deletedFiles: string[]}>}
      */
-    async deleteMultipleFiles(fileIds: string[], folderId: string): Promise<{ success: boolean; deletedCount: number; deletedFiles: string[] }> {
+    async deleteMultipleFiles(fileIds: string[], folderId: string, deleteIds?: string[]): Promise<{ success: boolean; deletedCount: number; deletedFiles: string[] }> {
         try {
             const res = await this.api.post(
                 '/storage/delete/bulk',
                 {
                     fileIds,
                     folderId,
+                    deleteIds,
                 },
                 {
                     headers: this.getHeaders('application/json'),

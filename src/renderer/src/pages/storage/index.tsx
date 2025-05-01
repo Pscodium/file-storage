@@ -121,33 +121,30 @@ export default function Storage() {
                 setFileDeletes((prevDeletes) => {
                     const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
 
-                    if (existingIndex >= 0) {
-                        if (prevDeletes[existingIndex].progress === data.progress) {
-                            return prevDeletes;
-                        }
+                    const newDeletes = [...prevDeletes];
 
-                        const newDeletes = [...prevDeletes];
-                        newDeletes[existingIndex] = {
-                            ...newDeletes[existingIndex],
-                            progress: data.progress,
-                            fileName: data.fileName || newDeletes[existingIndex].fileName,
-                            status: data.progress === 100 ? 'complete' : 'deleting',
-                        };
-                        return newDeletes;
-                    } else {
-                        return [
-                            ...prevDeletes,
-                            {
-                                deleteId: data.deleteId,
-                                fileId: data.fileId,
-                                fileName: data.fileName,
+                    if (existingIndex >= 0) {
+                        if (newDeletes[existingIndex].progress !== data.progress) {
+                            newDeletes[existingIndex] = {
+                                ...newDeletes[existingIndex],
                                 progress: data.progress,
-                                status: 'deleting',
-                                index: data.index,
-                                total: data.total,
-                            },
-                        ];
+                                fileName: data.fileName || newDeletes[existingIndex].fileName,
+                                status: data.progress === 100 ? 'complete' : 'deleting',
+                            };
+                        }
+                    } else {
+                        newDeletes.push({
+                            deleteId: data.deleteId,
+                            fileId: data.fileId,
+                            fileName: data.fileName,
+                            progress: data.progress,
+                            status: 'deleting',
+                            index: data.index,
+                            total: data.total,
+                        });
                     }
+
+                    return newDeletes;
                 });
 
                 setDeleteProgressVisible(true);
@@ -270,39 +267,28 @@ export default function Storage() {
                 setFileUploads((prevUploads) => {
                     const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
 
+                    const newUploads = [...prevUploads];
+
                     if (existingIndex >= 0) {
-                        if (prevUploads[existingIndex].progress === data.progress) {
-                            return prevUploads;
-                        }
-
-                        const newUploads = [...prevUploads];
-                        newUploads[existingIndex] = {
-                            ...newUploads[existingIndex],
-                            progress: data.progress,
-                            status: data.progress === 100 ? 'complete' : 'uploading',
-                        };
-                        return newUploads;
-                    } else {
-                        if (prevUploads.length >= data.total) {
-                            console.warn('Tentando adicionar mais arquivos do que o esperado', {
-                                current: prevUploads.length,
-                                expected: data.total,
-                            });
-                            return prevUploads;
-                        }
-
-                        return [
-                            ...prevUploads,
-                            {
-                                fileId: data.fileId,
-                                fileName: data.fileName,
+                        if (newUploads[existingIndex].progress !== data.progress) {
+                            newUploads[existingIndex] = {
+                                ...newUploads[existingIndex],
                                 progress: data.progress,
-                                status: 'uploading',
-                                index: data.index,
-                                total: data.total,
-                            },
-                        ];
+                                status: data.progress === 100 ? 'complete' : 'uploading',
+                            };
+                        }
+                    } else {
+                        newUploads.push({
+                            fileId: data.fileId,
+                            fileName: data.fileName,
+                            progress: data.progress,
+                            status: 'uploading',
+                            index: data.index,
+                            total: data.total,
+                        });
                     }
+
+                    return newUploads;
                 });
 
                 setUploadProgressVisible(true);
@@ -455,9 +441,19 @@ export default function Storage() {
             setUploadProgressVisible(true);
 
             const timestamp = Date.now();
-            const initialUploads = files.map((file, index) => ({
-                fileId: `${timestamp}-${index}`,
-                fileName: fileNames[index] || file.name,
+            const fileIds = files.map((_, index) => `${timestamp}-${index}`);
+
+            const finalFileNames = files.map((file, index) => {
+                if (fileNames[index]) {
+                    const extension = file.name.split('.').pop();
+                    return fileNames[index].endsWith(`.${extension}`) ? fileNames[index] : `${fileNames[index]}.${extension}`;
+                }
+                return file.name;
+            });
+
+            const initialUploads = files.map((_file, index) => ({
+                fileId: fileIds[index],
+                fileName: finalFileNames[index],
                 progress: 0,
                 status: 'uploading' as const,
                 index,
@@ -466,7 +462,7 @@ export default function Storage() {
 
             setFileUploads(initialUploads);
 
-            await apiService.uploadMultipleFiles(files, folder.id, fileNames);
+            await apiService.uploadMultipleFilesWithIds(files, folder.id, fileIds, finalFileNames);
         } catch (err) {
             toast({
                 variant: 'destructive',
@@ -515,7 +511,26 @@ export default function Storage() {
             setFileDeletes([]);
             setDeleteProgressVisible(true);
 
-            await apiService.deleteMultipleFiles(selectedFiles, folder.id);
+            const timestamp = Date.now();
+            const deleteIds = selectedFiles.map((_, index) => `${timestamp}-${index}`);
+
+            const initialDeletes = selectedFiles.map((fileId, index) => {
+                const file = files?.find((f) => f.id === fileId);
+
+                return {
+                    deleteId: deleteIds[index],
+                    fileId: fileId,
+                    fileName: file?.name,
+                    progress: 0,
+                    status: 'deleting' as const,
+                    index,
+                    total: selectedFiles.length,
+                };
+            });
+
+            setFileDeletes(initialDeletes);
+
+            await apiService.deleteMultipleFiles(selectedFiles, folder.id, deleteIds);
         } catch (err) {
             toast({
                 variant: 'destructive',

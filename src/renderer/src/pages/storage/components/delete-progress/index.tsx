@@ -1,4 +1,5 @@
 import { FaCheckCircle, FaExclamationCircle, FaTimesCircle, FaTrashAlt } from 'react-icons/fa';
+import { useMemo } from 'react';
 
 export interface FileDeleteProgress {
     deleteId: string;
@@ -17,10 +18,24 @@ interface DeleteProgressProps {
 }
 
 export default function DeleteProgress({ files, onClose }: DeleteProgressProps) {
-    const allComplete = files.every((file) => file.status === 'complete');
-    const hasErrors = files.some((file) => file.status === 'error');
+    const uniqueFiles = useMemo(() => {
+        const fileMap = new Map();
 
-    const overallProgress = files.length > 0 ? Math.round(files.reduce((acc, file) => acc + file.progress, 0) / files.length) : 0;
+        [...files].reverse().forEach((file) => {
+            if (!fileMap.has(file.deleteId)) {
+                fileMap.set(file.deleteId, file);
+            }
+        });
+
+        return Array.from(fileMap.values());
+    }, [files]);
+
+    const allComplete = uniqueFiles.every((file) => file.status === 'complete');
+    const hasErrors = uniqueFiles.some((file) => file.status === 'error');
+
+    const overallProgress = useMemo(() => {
+        return uniqueFiles.length > 0 ? Math.round(uniqueFiles.reduce((acc, file) => acc + file.progress, 0) / uniqueFiles.length) : 0;
+    }, [uniqueFiles]);
 
     return (
         <div className='fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 p-4 animate-fade-up'>
@@ -48,7 +63,7 @@ export default function DeleteProgress({ files, onClose }: DeleteProgressProps) 
             <div className='mb-3'>
                 <div className='flex justify-between text-sm text-gray-600 mb-1'>
                     <span>
-                        Progresso geral ({files.filter((f) => f.status === 'complete').length}/{files.length})
+                        Progresso geral ({uniqueFiles.filter((f) => f.status === 'complete').length}/{uniqueFiles.length})
                     </span>
                     <span>{overallProgress}%</span>
                 </div>
@@ -58,7 +73,7 @@ export default function DeleteProgress({ files, onClose }: DeleteProgressProps) 
             </div>
 
             <div className='max-h-60 overflow-y-auto pr-1'>
-                {files.map((file) => (
+                {uniqueFiles.map((file) => (
                     <div key={file.deleteId} className='mb-2 last:mb-0'>
                         <div className='flex justify-between text-sm mb-1'>
                             <span className='truncate flex-1 pr-2' title={file.fileName || file.fileId}>
