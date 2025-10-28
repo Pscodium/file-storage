@@ -2,6 +2,7 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
 import api from './axios';
 import { parse } from 'cookie';
+import { Category } from '@renderer/pages/articles/types/IArticle';
 
 type UserRoles = 'admin' | 'developer' | 'owner' | 'customer' | 'default';
 
@@ -282,6 +283,18 @@ class ApiService {
 
         if (res.status != 200) {
             throw new Error('Unexpected error on delete folder');
+        }
+
+        return res.data;
+    }
+
+    async getCategories(): Promise<Category[]> {
+        const res = await this.api.get('/categories', {
+            headers: this.getHeaders(),
+        });
+
+        if (res.status !== 200) {
+            throw new Error('Unexpected error on get categories');
         }
 
         return res.data;

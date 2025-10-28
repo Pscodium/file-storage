@@ -14,7 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui
 import { Input } from '@renderer/components/ui/input';
 import { Button } from '@renderer/components/ui/button';
 import { IoSend } from 'react-icons/io5';
-import { FaSyncAlt } from 'react-icons/fa';
+import { FaRegFileAlt, FaSyncAlt } from 'react-icons/fa';
 import randomColor from 'randomcolor';
 import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
 import { TailSpin } from 'react-loader-spinner';
@@ -27,6 +27,7 @@ import { useSocket } from '@renderer/services/socket';
 import DeleteProgress, { FileDeleteProgress } from './components/delete-progress';
 import { FaCheck, FaTrashAlt } from 'react-icons/fa';
 import UploadProgress, { FileUploadProgress } from './components/upload-progress';
+import { useArticle } from '@renderer/contexts/article';
 
 export interface StorageProps {}
 
@@ -64,6 +65,7 @@ export default function Storage() {
     const [timer, setTimer] = useState<null | number>(null);
     const [fileSearch, setFileSearch] = useState<string>('');
     const [folderSearch, setFolderSearch] = useState<string>('');
+    const { setIsOpen, isOpen } = useArticle();
     const colorPickerRef = useRef<HTMLInputElement>(null);
     const filteredFiles = fileSearch.length > 0 ? files?.filter((file) => file.name.toLowerCase().includes(fileSearch.toLowerCase())) : files;
     const filteredFolders = folderSearch.length > 0 ? folders.filter((folder) => folder.name.toLowerCase().includes(folderSearch.toLowerCase())) : folders;
@@ -719,6 +721,9 @@ export default function Storage() {
                                     </Popover>
                                     <div onClick={() => setOpenImageConversorDialog(true)} className='select-none cursor-pointer'>
                                         <FaSyncAlt size={13} className='hover:fill-gray-600 fill-black' />
+                                    </div>
+                                    <div onClick={() => setIsOpen(!isOpen)} className='select-none cursor-pointer'>
+                                        <FaRegFileAlt size={13} className='hover:fill-gray-600 fill-black' />
                                     </div>
                                 </div>
                             )}

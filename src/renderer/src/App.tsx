@@ -4,14 +4,17 @@ import LoginDialog from './components/Dialog/Login';
 import Storage from './pages/storage';
 import { Toaster } from './components/ui/toaster';
 import { useAuth } from './contexts/auth';
+import { useArticle } from './contexts/article';
+import Articles from './pages/articles';
 
 export default function App(): JSX.Element {
     const { openDialog } = useLoginDialog();
     const { user, Logout } = useAuth();
+    const { isOpen } = useArticle();
 
     return (
         <div className='h-screen flex flex-col items-center justify-center gap-2'>
-            <Storage />
+            {isOpen ? <Articles /> : <Storage />}
             {user ? (
                 <div className='fixed right-2 bottom-2 cursor-pointer' onClick={Logout}>
                     <BiLogOut size={23} className='fill-gray-400' />
