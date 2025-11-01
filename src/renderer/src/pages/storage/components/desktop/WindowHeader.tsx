@@ -21,7 +21,7 @@ export default function WindowHeader({ children }: { children: string }) {
                     <IoClose className='transition-opacity duration-300 opacity-0 hover:opacity-100 fill-[#83322e]' />
                 </button>
             </div>
-            <div>{children}</div>
+            <p className='text-black'>{children}</p>
         </div>
     );
 }

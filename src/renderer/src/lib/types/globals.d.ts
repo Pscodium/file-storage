@@ -1,7 +1,7 @@
 interface IArticle {
     id: string;
     title: string;
-    body: string;
+    content: string;
     files?: object | null;
     createdAt: Date;
     updatedAt: Date;

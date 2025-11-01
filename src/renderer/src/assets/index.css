@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @layer utilities {
     .no-drag {
@@ -17,8 +16,9 @@
 }
 
 /* Track */
+/* Light theme (default) */
 ::-webkit-scrollbar-track {
-    background: #ffff;
+    background: #fff;
     border-radius: 100px;
 }
 
@@ -31,6 +31,23 @@
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
     background: #555;
+}
+
+/* Dark theme overrides: when the root has the .dark class, use darker scrollbars */
+.dark ::-webkit-scrollbar-track {
+    /* subtle, slightly transparent track on dark backgrounds */
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 100px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+    /* light translucent thumb on dark theme */
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.16);
 }
 
 .progress {
@@ -46,212 +63,209 @@
     }
 }
 
-
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.18 0 0);
-  --card: oklch(0.99 0 0);
-  --card-foreground: oklch(0.18 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0 0);
-  --primary: oklch(0.45 0.15 264);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.18 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.55 0 0);
-  --accent: oklch(0.96 0 0);
-  --accent-foreground: oklch(0.18 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.92 0 0);
-  --input: oklch(0.92 0 0);
-  --ring: oklch(0.45 0.15 264);
-  --radius: 0.5rem;
-  --sidebar: oklch(0.99 0 0);
-  --sidebar-foreground: oklch(0.18 0 0);
-  --sidebar-primary: oklch(0.45 0.15 264);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.96 0 0);
-  --sidebar-accent-foreground: oklch(0.18 0 0);
-  --sidebar-border: oklch(0.92 0 0);
-  --sidebar-ring: oklch(0.45 0.15 264);
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.18 0 0);
+    --card: oklch(0.99 0 0);
+    --card-foreground: oklch(0.18 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.18 0 0);
+    --primary: oklch(0.45 0.15 264);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.96 0 0);
+    --secondary-foreground: oklch(0.18 0 0);
+    --muted: oklch(0.96 0 0);
+    --muted-foreground: oklch(0.55 0 0);
+    --accent: oklch(0.96 0 0);
+    --accent-foreground: oklch(0.18 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.92 0 0);
+    --input: oklch(0.92 0 0);
+    --ring: oklch(0.45 0.15 264);
+    --radius: 0.5rem;
+    --sidebar: oklch(0.99 0 0);
+    --sidebar-foreground: oklch(0.18 0 0);
+    --sidebar-primary: oklch(0.45 0.15 264);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.96 0 0);
+    --sidebar-accent-foreground: oklch(0.18 0 0);
+    --sidebar-border: oklch(0.92 0 0);
+    --sidebar-ring: oklch(0.45 0.15 264);
 }
 
 .dark {
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.95 0 0);
-  --card: oklch(0.14 0 0);
-  --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.14 0 0);
-  --popover-foreground: oklch(0.95 0 0);
-  --primary: oklch(0.55 0.18 264);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.95 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.65 0 0);
-  --accent: oklch(0.22 0 0);
-  --accent-foreground: oklch(0.95 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.22 0 0);
-  --input: oklch(0.22 0 0);
-  --ring: oklch(0.55 0.18 264);
-  --sidebar: oklch(0.1 0 0);
-  --sidebar-foreground: oklch(0.95 0 0);
-  --sidebar-primary: oklch(0.55 0.18 264);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.18 0 0);
-  --sidebar-accent-foreground: oklch(0.95 0 0);
-  --sidebar-border: oklch(0.22 0 0);
-  --sidebar-ring: oklch(0.55 0.18 264);
+    --background: rgb(6, 6, 6);
+    --foreground: oklch(0.95 0 0);
+    --card: oklch(0.14 0 0);
+    --card-foreground: oklch(0.95 0 0);
+    --popover: oklch(0.14 0 0);
+    --popover-foreground: oklch(0.95 0 0);
+    --primary: oklch(0.55 0.18 264);
+    --primary-foreground: oklch(0.99 0 0);
+    --secondary: oklch(0.22 0 0);
+    --secondary-foreground: oklch(0.95 0 0);
+    --muted: oklch(0.22 0 0);
+    --muted-foreground: oklch(0.65 0 0);
+    --accent: oklch(0.22 0 0);
+    --accent-foreground: oklch(0.95 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.985 0 0);
+    --border: oklch(0.22 0 0);
+    --input: oklch(0.22 0 0);
+    --ring: oklch(0.55 0.18 264);
+    --sidebar: oklch(0.1 0 0);
+    --sidebar-foreground: oklch(0.95 0 0);
+    --sidebar-primary: oklch(0.55 0.18 264);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.18 0 0);
+    --sidebar-accent-foreground: oklch(0.95 0 0);
+    --sidebar-border: oklch(0.22 0 0);
+    --sidebar-ring: oklch(0.55 0.18 264);
 }
 
 @theme inline {
-  --font-sans: "Geist", "Geist Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
+    --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-foreground: var(--sidebar-foreground);
+    --color-sidebar-primary: var(--sidebar-primary);
+    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+    --color-sidebar-accent: var(--sidebar-accent);
+    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+    --color-sidebar-border: var(--sidebar-border);
+    --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
+    * {
+        @apply border-border outline-ring/50;
+    }
+    body {
+        @apply bg-background text-foreground;
+    }
 
-  /* Markdown Styles */
-  .markdown-content {
-    @apply text-foreground leading-relaxed;
-  }
+    /* Markdown Styles */
+    .markdown-content {
+        @apply text-foreground leading-relaxed;
+    }
 
-  .markdown-content h1 {
-    @apply text-4xl font-bold mt-8 mb-4 text-balance;
-  }
+    .markdown-content h1 {
+        @apply text-4xl font-bold mt-8 mb-4 text-balance;
+    }
 
-  .markdown-content h2 {
-    @apply text-3xl font-semibold mt-6 mb-3 text-balance;
-  }
+    .markdown-content h2 {
+        @apply text-3xl font-semibold mt-6 mb-3 text-balance;
+    }
 
-  .markdown-content h3 {
-    @apply text-2xl font-semibold mt-5 mb-2 text-balance;
-  }
+    .markdown-content h3 {
+        @apply text-2xl font-semibold mt-5 mb-2 text-balance;
+    }
 
-  .markdown-content h4 {
-    @apply text-xl font-semibold mt-4 mb-2;
-  }
+    .markdown-content h4 {
+        @apply text-xl font-semibold mt-4 mb-2;
+    }
 
-  .markdown-content p {
-    @apply mb-4 text-pretty;
-  }
+    .markdown-content p {
+        @apply mb-4 text-pretty;
+    }
 
-  .markdown-content ul,
-  .markdown-content ol {
-    @apply mb-4 ml-6;
-  }
+    .markdown-content ul,
+    .markdown-content ol {
+        @apply mb-4 ml-6;
+    }
 
-  .markdown-content li {
-    @apply mb-2;
-  }
+    .markdown-content li {
+        @apply mb-2;
+    }
 
-  .markdown-content ul li {
-    @apply list-disc;
-  }
+    .markdown-content ul li {
+        @apply list-disc;
+    }
 
-  .markdown-content ol li {
-    @apply list-decimal;
-  }
+    .markdown-content ol li {
+        @apply list-decimal;
+    }
 
-  .markdown-content a {
-    @apply text-primary hover:underline;
-  }
+    .markdown-content a {
+        @apply text-primary hover:underline;
+    }
 
-  .markdown-content blockquote {
-    @apply border-l-4 border-primary pl-4 italic my-4 text-muted-foreground;
-  }
+    .markdown-content blockquote {
+        @apply border-l-4 border-primary pl-4 italic my-4 text-muted-foreground;
+    }
 
-  .markdown-content code {
-    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
-  }
+    .markdown-content code {
+        @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+    }
 
-  .markdown-content pre {
-    @apply bg-card border border-border rounded-lg p-4 overflow-x-auto my-4;
-  }
+    .markdown-content pre {
+        @apply bg-card border border-border rounded-lg p-4 overflow-x-auto my-4;
+    }
 
-  .markdown-content pre code {
-    @apply bg-transparent p-0;
-  }
+    .markdown-content pre code {
+        @apply bg-transparent p-0;
+    }
 
-  /* Highlight.js tweaks: make the theme background transparent so the surrounding
+    /* Highlight.js tweaks: make the theme background transparent so the surrounding
      .markdown-content pre background (which follows CSS variables and .dark) is used.
      This keeps code blocks visually consistent with the app's light/dark theme. */
-  .markdown-content pre .hljs,
-  .markdown-content pre code.hljs {
-    background: transparent !important;
-    padding: 0 !important;
-    font-family: var(--font-mono);
-  }
+    .markdown-content pre .hljs,
+    .markdown-content pre code.hljs {
+        background: transparent !important;
+        padding: 0 !important;
+        font-family: var(--font-mono);
+    }
 
-  /* If the highlight theme adds extra padding/margins, ensure the pre handles layout.
+    /* If the highlight theme adds extra padding/margins, ensure the pre handles layout.
      Keep token colors from the theme (don't override color) so syntax colors remain. */
 
-  .markdown-content table {
-    @apply w-full border-collapse my-4;
-  }
+    .markdown-content table {
+        @apply w-full border-collapse my-4;
+    }
 
-  .markdown-content th,
-  .markdown-content td {
-    @apply border border-border px-4 py-2;
-  }
+    .markdown-content th,
+    .markdown-content td {
+        @apply border border-border px-4 py-2;
+    }
 
-  .markdown-content th {
-    @apply bg-muted font-semibold;
-  }
+    .markdown-content th {
+        @apply bg-muted font-semibold;
+    }
 
-  .markdown-content hr {
-    @apply my-6 border-border;
-  }
+    .markdown-content hr {
+        @apply my-6 border-border;
+    }
 
-  .markdown-content img {
-    @apply max-w-full h-auto rounded-lg my-4;
-  }
+    .markdown-content img {
+        @apply max-w-full h-auto rounded-lg my-4;
+    }
 
-  /* Checkbox styles */
-  .markdown-content input[type="checkbox"] {
-    @apply mr-2 accent-primary;
-  }
+    /* Checkbox styles */
+    .markdown-content input[type='checkbox'] {
+        @apply mr-2 accent-primary;
+    }
 }

@@ -1,6 +1,6 @@
 import { Skeleton } from '@renderer/components/ui/skeleton';
 import { Article } from '../../types/IArticle';
-import { MarkdownRenderer } from './markdown-renderer';
+import DocsPreview from './docs-preview';
 
 interface DocsContentProps {
     article: Article | null;
@@ -35,9 +35,9 @@ export function DocsContent({ article, isLoading }: DocsContentProps) {
     }
 
     return (
-        <article className='mx-auto max-w-4xl p-6 md:p-8'>
-            <h1 className='mb-6 text-4xl font-bold text-balance'>{article.title}</h1>
-            <MarkdownRenderer content={article.content ?? article.body ?? ''} />
+        <article className='w-full'>
+            <h1 className='p-4 text-5xl font-bold text-balance'>{article.title}</h1>
+            <DocsPreview article={article} />
         </article>
     );
 }

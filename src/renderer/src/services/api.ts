@@ -2,7 +2,7 @@
 import { AxiosInstance, AxiosResponse } from 'axios';
 import api from './axios';
 import { parse } from 'cookie';
-import { Category } from '@renderer/pages/articles/types/IArticle';
+import { Category, Article } from '@renderer/pages/articles/types/IArticle';
 
 type UserRoles = 'admin' | 'developer' | 'owner' | 'customer' | 'default';
 
@@ -299,7 +299,123 @@ class ApiService {
 
         return res.data;
     }
-}
 
+    async createCategory(title: string): Promise<Category> {
+        const res = await this.api.post(
+            '/category',
+            {
+                title,
+            },
+            {
+                headers: this.getHeaders('application/json'),
+            }
+        );
+
+        if (res.status !== 201) {
+            throw new Error('Unexpected error on create category');
+        }
+
+        return res.data;
+    }
+
+    async createSubCategory(title: string, categoryId: string): Promise<Category> {
+        const res = await this.api.post(
+            `/sub/category/${categoryId}`,
+            {
+                title,
+            },
+            {
+                headers: this.getHeaders('application/json'),
+            }
+        );
+
+        if (res.status !== 201) {
+            throw new Error('Unexpected error on create sub category');
+        }
+
+        return res.data;
+    }
+
+    async createArticleOnCategory(categoryId: string, title: string, content: string): Promise<Article> {
+        const res = await this.api.post(
+            `/article/create/${categoryId}`,
+            {
+                title,
+                content,
+            },
+            {
+                headers: this.getHeaders('application/json'),
+            }
+        );
+        if (res.status !== 200) {
+            throw new Error('Unexpected error on create article');
+        }
+        return res.data;
+    }
+
+    async createArticleOnSubCategory(categoryId: string, subCategoryId: string, title: string, content: string): Promise<Article> {
+        const res = await this.api.post(
+            `/article/create/${categoryId}/${subCategoryId}`,
+            {
+                title,
+                content,
+            },
+            {
+                headers: this.getHeaders('application/json'),
+            }
+        );
+        if (res.status !== 200) {
+            throw new Error('Unexpected error on create article');
+        }
+        return res.data;
+    }
+
+    async deleteArticle(articleId: string): Promise<{ success: boolean }> {
+        const res = await this.api.delete(`/article/${articleId}`, {
+            headers: this.getHeaders(),
+        });
+        if (res.status !== 204) {
+            throw new Error('Unexpected error on delete article');
+        }
+        return { success: true };
+    }
+
+    async deleteCategory(categoryId: string): Promise<{ success: boolean }> {
+        const res = await this.api.delete(`/category/${categoryId}`, {
+            headers: this.getHeaders(),
+        });
+        if (res.status !== 204) {
+            throw new Error('Unexpected error on delete category');
+        }
+        return { success: true };
+    }
+
+    async deleteSubCategory(subCategoryId: string): Promise<{ success: boolean }> {
+        const res = await this.api.delete(`/sub/category/${subCategoryId}`, {
+            headers: this.getHeaders(),
+        });
+        if (res.status !== 204) {
+            throw new Error('Unexpected error on delete sub category');
+        }
+        return { success: true };
+    }
+
+    async updateArticle(articleId: string, title: string, content: string): Promise<Article> {
+        const res = await this.api.put(
+            `/article/${articleId}`,
+            {
+                title,
+                content,
+            },
+            {
+                headers: this.getHeaders('application/json'),
+            }
+        );
+        if (res.status !== 200) {
+            throw new Error('Unexpected error on update article');
+        }
+        return res.data;
+    }
+}
 export const apiService = new ApiService();
 export type { FormProps, UserProps, UserRoles, LoginProps };

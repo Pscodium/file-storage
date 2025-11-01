@@ -27,7 +27,7 @@ export default function Uploader({ mimetype, getRootProps, getInputProps, isDrag
             <div
                 {...getRootProps()}
                 className={`
-                    w-full h-[200px] p-6 rounded-lg border-dashed border-2 hover:border-gray-500 bg-white hover:bg-gray-50 transition-all
+                    w-full h-[200px] p-6 rounded-lg border-dashed border-2 dark:hover:bg-background dark:bg-secondary hover:border-gray-500 bg-background hover:bg-gray-50 transition-all
                     ${isDragActive ? 'border-blue-500 hover:border-blue-300' : 'border-gray-300'} ${sizeLimiter ? 'border-red-500 hover:bg-red-50 hover:border-red-300' : ''}`}
             >
                 <label htmlFor='dropzone-file' className='cursor-pointer w-full h-full'>

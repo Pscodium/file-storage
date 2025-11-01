@@ -670,14 +670,14 @@ export default function Storage() {
                                 <OrderMenu actualOrder={folderOrder} onOrder={(newOrder) => setOrderFolder(newOrder)} />
                             </div>
                             {user && user?.role === 'owner' && (
-                                <div className='no-drag flex items-center gap-2 absolute h-[20px] top-[5px] z-[999] pointer-events-auto ml-1 cursor-pointer'>
+                                <div className='no-drag flex items-center gap-2 absolute h-5 top-[5px] z-999 pointer-events-auto ml-1 cursor-pointer'>
                                     <Popover onOpenChange={() => setOpenFolderPopover(!openFolderPopover)} open={openFolderPopover}>
                                         <PopoverTrigger>
-                                            <FaPlus className='hover:fill-gray-600 fill-black' />
+                                            <FaPlus className='hover:fill-gray-600 fill-black cursor-pointer' />
                                         </PopoverTrigger>
-                                        <PopoverContent className='flex flex-col gap-2 bg-white' side='bottom'>
+                                        <PopoverContent className='flex flex-col gap-2 bg-background' side='bottom'>
                                             <div className='flex gap-1'>
-                                                <Input value={folderName} onChange={(ev) => setFolderName(ev.target.value)} className='!outline-none' />
+                                                <Input value={folderName} onChange={(ev) => setFolderName(ev.target.value)} className='outline-none!' />
                                                 <Button onClick={createFolder} className='bg-green-400 hover:bg-green-200'>
                                                     <IoSend color='#ffffff' />
                                                 </Button>
@@ -687,7 +687,7 @@ export default function Storage() {
                                                     <SelectTrigger className=''>
                                                         <SelectValue placeholder='Tipo' />
                                                     </SelectTrigger>
-                                                    <SelectContent className='bg-white'>
+                                                    <SelectContent className='bg-background'>
                                                         <SelectItem value={Mimetypes.Video}>Video</SelectItem>
                                                         <SelectItem value={Mimetypes.Audio}>Audio</SelectItem>
                                                         <SelectItem value={Mimetypes.Image}>Image</SelectItem>
@@ -747,7 +747,7 @@ export default function Storage() {
                                                 <Folders.Icon hex={folder.hex} />
                                                 {folder.private && (
                                                     <Folders.Badge variant='left-bottom'>
-                                                        <FaLock className='fill-yellow-400 h-[8px] w-[8px]' />
+                                                        <FaLock className='fill-yellow-400 h-2 w-2' />
                                                     </Folders.Badge>
                                                 )}
                                                 {folder.filesCount != undefined && <Folders.Badge variant='right-bottom'>{folder.filesCount}</Folders.Badge>}
@@ -766,13 +766,13 @@ export default function Storage() {
                             <div className='absolute top-[30px] right-[5px]'>
                                 <OrderMenu actualOrder={fileOrder} onOrder={(newOrder) => setOrderFile(newOrder)} />
                             </div>
-                            <div onClick={returnToFolders} className='absolute no-drag top-[6px] z-[999] ml-[8px] cursor-pointer pointer-events-auto'>
-                                <FaArrowLeft />
+                            <div onClick={returnToFolders} className='absolute no-drag top-1.5 z-999 ml-2 cursor-pointer pointer-events-auto'>
+                                <FaArrowLeft className='hover:fill-gray-600 fill-black'/>
                             </div>
                             {user && user?.role === 'owner' && (
                                 <>
-                                    <div onClick={() => setOpenUploadDialog(true)} className='absolute h-[20px] no-drag top-[6px] z-[9999] ml-[36px] cursor-pointer pointer-events-auto'>
-                                        <FaPlus />
+                                    <div onClick={() => setOpenUploadDialog(true)} className='absolute h-5 no-drag top-1.5 z-9999 ml-9 cursor-pointer pointer-events-auto'>
+                                        <FaPlus className='hover:fill-gray-600 fill-black' />
                                     </div>
 
                                     <div onClick={handleDeleteClick} className='absolute no-drag top-[6px] z-[999] h-[20px] ml-[64px] cursor-pointer pointer-events-auto'>

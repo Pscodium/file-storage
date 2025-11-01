@@ -14,18 +14,18 @@ export function OrderMenu({ onOrder, actualOrder }: OrderMenuProps) {
                     <ArrowUpDown className='h-5 w-5 stroke-gray-400' />
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className='w-[200px] z-50 bg-white'>
+            <DropdownMenuContent className='w-[200px] z-50 bg-background'>
                 <DropdownMenuRadioGroup value={actualOrder} onValueChange={(value) => onOrder(value as OrderOptions)}>
-                    <DropdownMenuRadioItem className='cursor-pointer focus:bg-gray-100 bg-white' value='date-ascending'>
+                    <DropdownMenuRadioItem className='cursor-pointer hover:bg-background/80 bg-background' value='date-ascending'>
                         Data (mais antiga)
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem className='cursor-pointer focus:bg-gray-100 bg-white' value='date-descending'>
+                    <DropdownMenuRadioItem className='cursor-pointer hover:bg-background/80 bg-background' value='date-descending'>
                         Data (mais recente)
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem className='cursor-pointer focus:bg-gray-100 bg-white' value='name-alphabetical'>
+                    <DropdownMenuRadioItem className='cursor-pointer hover:bg-background/80 bg-background' value='name-alphabetical'>
                         Nome (A-Z)
                     </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem className='cursor-pointer focus:bg-gray-100 bg-white' value='name-reverse-alphabetical'>
+                    <DropdownMenuRadioItem className='cursor-pointer hover:bg-background/80 bg-background' value='name-reverse-alphabetical'>
                         Nome (Z-A)
                     </DropdownMenuRadioItem>
                 </DropdownMenuRadioGroup>

@@ -3,7 +3,6 @@ export interface Article {
     id: string;
     title: string;
     content?: string;
-    body?: string;
     files?: any;
     createdAt?: string;
     updatedAt?: string;

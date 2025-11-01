@@ -2,15 +2,16 @@
 
 import { Button } from '@renderer/components/ui/button';
 import { Input } from '@renderer/components/ui/input';
+import { useTheme } from '@renderer/contexts/theme';
 import { Search, Moon, Sun } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export function DocsHeader() {
-    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+    const { theme, setTheme } = useTheme();
 
     useEffect(() => {
         const isDark = document.documentElement.classList.contains('dark');
-        setTheme(isDark ? 'dark' : 'light');
+        setTheme(isDark ? 'light' : 'dark');
     }, []);
 
     const toggleTheme = () => {
@@ -20,7 +21,7 @@ export function DocsHeader() {
     };
 
     return (
-        <header className='sticky top-0 z-50 flex h-14 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+        <header className='sticky top-0 z-50 flex h-14 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/60'>
             <div className='flex flex-1 items-center gap-4'>
                 <h1 className='text-lg font-semibold'>Documentation</h1>
 

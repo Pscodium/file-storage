@@ -83,7 +83,7 @@ export default function LoginDialog() {
                         text={inputs.email}
                         onChange={(ev) => setInputs({ ...inputs, email: ev.target.value })}
                         label='E-mail'
-                        className='!bg-white'
+                        className='bg-background!'
                     />
                     <FloatingLabelInput
                         onKeyDown={handleKeyPress}
@@ -93,15 +93,15 @@ export default function LoginDialog() {
                         label='Password'
                         type='password'
                         security='*'
-                        className='!bg-white'
+                        className='bg-background!'
                     />
                 </div>
                 <div className='flex gap-3'>
                     <DialogTrigger>
-                        <Button className='rounded-md bg-core-primary text-white hover:bg-forum-navb'>Cancel</Button>
+                        <Button className='rounded-md bg-gray-800 text-white cursor-pointer hover:bg-gray-700'>Cancel</Button>
                     </DialogTrigger>
-                    <Button onClick={onClickSubmit} className='rounded-md bg-core-secondary text-white hover:bg-forum-navb'>
-                        Login
+                    <Button onClick={onClickSubmit} className='rounded-md cursor-pointer bg-slate-600 text-white hover:bg-slate-500'>
+                        Enter
                     </Button>
                 </div>
             </DialogContent>

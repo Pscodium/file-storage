@@ -65,8 +65,8 @@ export default function ContentDialog({ isOpen, setOpen, file, folder, deleteFil
 
     return (
         <Dialog open={isOpen} onOpenChange={setOpen}>
-            <DialogContent className='bg-white outline-none border-none z-[999] flex flex-col overflow-y-auto' style={{ maxHeight: windowHeight - 80 }}>
-                <DialogTitle className='text-[24px] text-black'>File</DialogTitle>
+            <DialogContent className='bg-secondary outline-none border-none z-[999] flex flex-col overflow-y-auto' style={{ maxHeight: windowHeight - 80 }}>
+                <DialogTitle className='text-[24px]'>File</DialogTitle>
                 <DialogDescription>{file?.name}</DialogDescription>
                 <div className='flex w-full'>
                     {folder && file && folder.type === 'video/*' && <VideoPlayer url={file.url} />}
@@ -80,7 +80,7 @@ export default function ContentDialog({ isOpen, setOpen, file, folder, deleteFil
                     </div>
 
                     {user?.role == 'owner' && (
-                        <button className='self-center' onClick={handleDeleteClick}>
+                        <button className='self-center cursor-pointer' onClick={handleDeleteClick}>
                             {confirming ? <FaSquareCheck color='#ffcc00' className='h-4 w-4' /> : <FaTrashCan color='#FF3366' className='h-4 w-4' />}
                         </button>
                     )}

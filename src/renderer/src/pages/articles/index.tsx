@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useArticle } from '@renderer/contexts/article';
 import { Desktop } from './components/desktop';
-import { FaRegFolder } from 'react-icons/fa';
+import { FaBookOpen, FaPen, FaRegFolder } from 'react-icons/fa';
 import { useEffect, useState } from 'react';
 import { Article, ArticleGroup, Category, Subcategory } from './types/IArticle';
 import { Button } from '@renderer/components/ui/button';
@@ -11,9 +11,11 @@ import { DocsSidebar } from './components/docs/docs-sidebar';
 import { DocsContent } from './components/docs/docs-content';
 import { apiService } from '@renderer/services/api';
 import { useAuth } from '@renderer/contexts/auth';
+import { IoSend } from 'react-icons/io5';
+import DocsEditor from './components/docs/docs-editor';
 
 export default function Articles(): JSX.Element {
-    const { setIsOpen, isOpen } = useArticle();
+    const { setIsOpen, isOpen, newSubSection, setNewSubSection, previewMode, setPreviewMode } = useArticle();
     const { user } = useAuth();
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -27,6 +29,14 @@ export default function Articles(): JSX.Element {
         }
     }, [user]);
 
+    // Apply dark theme only while this Articles component is mounted.
+    useEffect(() => {
+        document.documentElement.classList.add('dark');
+        return () => {
+            document.documentElement.classList.remove('dark');
+        };
+    }, []);
+
     async function getCategories() {
         try {
             setIsLoading(true);
@@ -36,7 +46,7 @@ export default function Articles(): JSX.Element {
             const normalizeArticle = (raw: any): Article => ({
                 id: raw.id,
                 title: raw.title,
-                body: raw.content ?? raw.body ?? '',
+                content: raw.content ?? '',
                 files: raw.files ?? null,
                 createdAt: raw.createdAt ?? raw.created_at,
                 updatedAt: raw.updatedAt ?? raw.updated_at,
@@ -128,12 +138,81 @@ export default function Articles(): JSX.Element {
         }
     }
 
+    async function createArticle() {
+        if (!newSubSection || !newSubSection.title || !newSubSection.message) return;
+
+        if (newSubSection.edit) {
+            try {
+                const res = await apiService.updateArticle(selectedArticle?.id || '', newSubSection.title, newSubSection.message);
+                console.log('Article updated successfully:', res);
+                await getCategories();
+                setNewSubSection({ title: '', type: 'article', message: '', articleEditor: false, edit: false });
+                setSelectedArticle(res);
+                return;
+            } catch (error) {
+                console.error('Error updating article:', error);
+                setNewSubSection({ title: '', type: 'article', message: '', articleEditor: false, edit: false });
+                setSelectedArticle(null);
+                return;
+            }
+        }
+
+        if (!newSubSection.categoryId) return;
+
+        if (!newSubSection.subCategoryId) {
+            try {
+                const res = await apiService.createArticleOnCategory(newSubSection.categoryId, newSubSection.title, newSubSection.message);
+                console.log('Article created successfully:', res);
+                await getCategories();
+                setNewSubSection({ title: '', type: 'article', message: '', articleEditor: false });
+                setSelectedArticle(res);
+                return;
+            } catch (error) {
+                console.error('Error creating article:', error);
+                setNewSubSection({ title: '', type: 'article', message: '', articleEditor: false });
+                setSelectedArticle(null);
+                return;
+            }
+        }
+
+        try {
+            const res = await apiService.createArticleOnSubCategory(newSubSection.categoryId, newSubSection.subCategoryId, newSubSection.title, newSubSection.message);
+            console.log('Article created successfully:', res);
+            await getCategories();
+            setNewSubSection({ title: '', type: 'article', message: '', articleEditor: false });
+            setSelectedArticle(res);
+        } catch (error) {
+            console.error('Error creating article:', error);
+            setNewSubSection({ title: '', type: 'article', message: '', articleEditor: false });
+            setSelectedArticle(null);
+        }
+    }
+
+    async function deleteCallback(type: 'category' | 'article' | 'sub-category', id: string) {
+        if (!id) return;
+
+        try {
+            if (type === 'category') {
+                await apiService.deleteCategory(id);
+            } else if (type === 'article') {
+                await apiService.deleteArticle(id);
+            } else if (type === 'sub-category') {
+                await apiService.deleteSubCategory(id);
+            }
+            await getCategories();
+        } catch (error) {
+            console.error('Error deleting item:', error);
+        } finally {
+            setSelectedArticle(null);
+        }
+    }
+
     return (
         <div className='min-h-screen w-full items-center justify-center'>
             <div className='absolute w-full h-7 drag'>
                 <Desktop.Root>
                     <Desktop.Window>
-                        <div className='no-drag flex items-center gap-2 absolute h-[20px] top-[8px] z-[999] pointer-events-auto ml-2 cursor-pointer'>
+                        <div className='no-drag flex items-center gap-2 absolute h-5 top-2 z-999 pointer-events-auto ml-2 cursor-pointer'>
                             <div onClick={() => setIsOpen(!isOpen)} className='select-none cursor-pointer'>
                                 <FaRegFolder size={13} className='hover:fill-gray-600 fill-black' />
                             </div>
@@ -163,10 +242,13 @@ export default function Articles(): JSX.Element {
                                             onSelectArticle={(article) => {
                                                 setSelectedArticle(article);
                                                 setIsSidebarOpen(false);
+                                                setNewSubSection({ title: '', type: 'article', articleEditor: false });
                                             }}
                                             isLoading={isLoading}
                                             sidebarWidth={sidebarWidth}
                                             setSidebarWidth={setSidebarWidth}
+                                            getCategories={getCategories}
+                                            deleteCallback={deleteCallback}
                                         />
                                     </aside>
 
@@ -174,11 +256,37 @@ export default function Articles(): JSX.Element {
                                     {isSidebarOpen && <div className='fixed inset-0 z-30 bg-background/80 backdrop-blur-sm md:hidden' onClick={() => setIsSidebarOpen(false)} />}
 
                                     {/* Main content */}
-                                    <main className='flex-1 overflow-y-auto'>
-                                        <DocsContent article={selectedArticle} isLoading={isLoading} />
-                                    </main>
+                                    <main className='flex-1 overflow-y-auto'>{newSubSection?.articleEditor ? <DocsEditor /> : <DocsContent article={selectedArticle} isLoading={isLoading} />}</main>
                                 </div>
                             </div>
+                            <>
+                                {newSubSection?.articleEditor && (
+                                    <>
+                                        {previewMode ? (
+                                            <Button className='absolute right-18 top-10 z-99 cursor-pointer bg-transparent hover:bg-secondary' onClick={() => setPreviewMode(false)}>
+                                                <FaPen className='fill-foreground h-4 w-4' />
+                                            </Button>
+                                        ) : (
+                                            <Button className='absolute right-18 top-10 z-99 cursor-pointer bg-transparent hover:bg-secondary' onClick={() => setPreviewMode(true)}>
+                                                <FaBookOpen className='fill-foreground h-4 w-4' />
+                                            </Button>
+                                        )}
+                                    </>
+                                )}
+                            </>
+                            <>
+                                {newSubSection?.articleEditor && (
+                                    <>
+                                        <Button
+                                            disabled={(!newSubSection?.title && !newSubSection?.message) || newSubSection?.title === '' || newSubSection?.message === ''}
+                                            className='absolute right-34 top-10 z-99 cursor-pointer bg-transparent hover:bg-secondary items-center'
+                                            onClick={createArticle}
+                                        >
+                                            <IoSend className='fill-foreground h-4 w-4' />
+                                        </Button>
+                                    </>
+                                )}
+                            </>
                         </Desktop.WindowContent>
                     </Desktop.Window>
                 </Desktop.Root>

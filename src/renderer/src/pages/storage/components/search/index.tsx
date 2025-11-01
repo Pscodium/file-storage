@@ -30,7 +30,7 @@ export default function SearchInput({ input, setInput }: SearchInputProps) {
         <div>
             {isOpen ? (
                 <div onBlur={handleBlurInput} className='search flex w-full overflow-hidden border border-1 border-gray-400 rounded-md'>
-                    <Input autoFocus value={input} onChange={(ev) => setInput(ev.target.value)} type='search' className='rounded-none border-none rounded-s-md h-5 py-4 text-[12px] bg-white' />
+                    <Input autoFocus value={input} onChange={(ev) => setInput(ev.target.value)} type='search' className='rounded-none border-none rounded-s-md h-5 py-4 text-[12px] bg-background' />
                     <button onClick={handleClickCloseButton} className='relative w-8 min-h-full bg-gray-400 flex items-center justify-center hover:bg-gray-500'>
                         <CloseIcon className='stroke-white' />
                     </button>
