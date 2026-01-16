@@ -1,9 +1,10 @@
-import { BiSolidDoorOpen, BiLogOut } from 'react-icons/bi';
-import { useLoginDialog } from './contexts/login.dialog';
+import { BiLogOut, BiSolidDoorOpen } from 'react-icons/bi';
 import LoginDialog from './components/Dialog/Login';
-import Storage from './pages/storage';
 import { Toaster } from './components/ui/toaster';
+import { UpdateNotification } from './components/UpdateNotification';
 import { useAuth } from './contexts/auth';
+import { useLoginDialog } from './contexts/login.dialog';
+import Storage from './pages/storage';
 
 export default function App(): JSX.Element {
     const { openDialog } = useLoginDialog();
@@ -22,6 +23,7 @@ export default function App(): JSX.Element {
                 </div>
             )}
             <LoginDialog />
+            <UpdateNotification />
             <Toaster />
         </div>
     );

@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
-import { cn } from "@renderer/lib/utils";
-import { cva } from "class-variance-authority";
+import { cn } from '@renderer/lib/utils';
+import { cva } from 'class-variance-authority';
 
 export interface BadgeProps {
     children: number | React.ReactNode;

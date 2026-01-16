@@ -135,3 +135,9 @@ dist
 out
 .DS_Store
 *.log*
+
+# Documentation generated files
+imp_update.md
+adv_update_guide.md
+update.md
+update_guide.md

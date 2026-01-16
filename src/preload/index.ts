@@ -1,5 +1,6 @@
 import { electronAPI } from '@electron-toolkit/preload';
 import { contextBridge, ipcRenderer } from 'electron';
+import { DownloadProgress, UpdateCheckResult, UpdateDownloadResult, UpdateInfo } from './updater.types';
 
 // Custom APIs for renderer
 const api = {
@@ -21,6 +22,30 @@ const api = {
         return () => ipcRenderer.removeListener('download-error', handler);
     },
     showInFolder: (filePath: string) => ipcRenderer.invoke('show-in-folder', { filePath }) as Promise<boolean>,
+    // Auto Updater APIs
+    checkForUpdates: () => ipcRenderer.invoke('check-for-updates') as Promise<UpdateCheckResult>,
+    downloadUpdate: () => ipcRenderer.invoke('download-update') as Promise<UpdateDownloadResult>,
+    installUpdate: () => ipcRenderer.invoke('install-update'),
+    onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info);
+        ipcRenderer.on('update-available', handler);
+        return () => ipcRenderer.removeListener('update-available', handler);
+    },
+    onUpdateDownloadProgress: (callback: (progress: DownloadProgress) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, progress: DownloadProgress) => callback(progress);
+        ipcRenderer.on('update-download-progress', handler);
+        return () => ipcRenderer.removeListener('update-download-progress', handler);
+    },
+    onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, info: UpdateInfo) => callback(info);
+        ipcRenderer.on('update-downloaded', handler);
+        return () => ipcRenderer.removeListener('update-downloaded', handler);
+    },
+    onUpdateError: (callback: (error: string) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, error: string) => callback(error);
+        ipcRenderer.on('update-error', handler);
+        return () => ipcRenderer.removeListener('update-error', handler);
+    },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to
