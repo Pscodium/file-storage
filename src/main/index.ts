@@ -1,7 +1,9 @@
 /* eslint-disable no-empty-pattern */
-import { app, shell, BrowserWindow, ipcMain } from 'electron';
+import { electronApp, is, optimizer } from '@electron-toolkit/utils';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
+import * as fs from 'fs';
+import * as https from 'https';
 import { join } from 'path';
-import { electronApp, optimizer, is } from '@electron-toolkit/utils';
 import icon from '../../resources/favicon.png?asset';
 
 function createWindow(): void {
@@ -53,6 +55,69 @@ function createWindow(): void {
             default:
                 break;
         }
+    });
+
+    ipcMain.handle('select-save-path', async (_event, { suggestedName }: { suggestedName?: string }) => {
+        const result = await dialog.showSaveDialog(mainWindow, {
+            defaultPath: suggestedName,
+        });
+        if (result.canceled) return null;
+        return result.filePath;
+    });
+
+    ipcMain.handle('start-download', async (event, { id, url, filePath }: { id: string; url: string; filePath: string }) => {
+        return new Promise((resolve, reject) => {
+            const fileStream = fs.createWriteStream(filePath);
+            const request = https.get(url, (res) => {
+                if (res.statusCode && res.statusCode >= 400) {
+                    fileStream.close();
+                    fs.unlink(filePath, () => {});
+                    const msg = `HTTP ${res.statusCode}`;
+                    event.sender.send('download-error', { id, error: msg });
+                    reject(new Error(msg));
+                    return;
+                }
+
+                const total = Number(res.headers['content-length'] || 0);
+                let received = 0;
+
+                res.on('data', (chunk: Buffer) => {
+                    received += chunk.length;
+                    const progress = total > 0 ? Math.min(100, Math.round((received / total) * 100)) : Math.min(95, Math.round((received / (1024 * 1024)) % 100));
+                    event.sender.send('download-progress', { id, progress });
+                });
+
+                res.on('end', () => {
+                    fileStream.close();
+                    event.sender.send('download-complete', { id, filePath });
+                    resolve(true);
+                });
+
+                res.on('error', (err) => {
+                    fileStream.close();
+                    fs.unlink(filePath, () => {});
+                    event.sender.send('download-error', { id, error: err.message });
+                    reject(err);
+                });
+
+                res.pipe(fileStream);
+            });
+
+            request.on('error', (err) => {
+                fileStream.close();
+                fs.unlink(filePath, () => {});
+                event.sender.send('download-error', { id, error: err.message });
+                reject(err);
+            });
+        });
+    });
+
+    ipcMain.handle('show-in-folder', async (_event, { filePath }: { filePath: string }) => {
+        if (filePath) {
+            shell.showItemInFolder(filePath);
+            return true;
+        }
+        return false;
     });
 }
 

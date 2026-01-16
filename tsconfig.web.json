@@ -4,9 +4,11 @@
     "src/renderer/src/env.d.ts",
     "src/renderer/src/**/*",
     "src/renderer/src/**/*.tsx",
+    "src/preload/src/*.ts",
     "src/preload/*.d.ts"
   ],
   "compilerOptions": {
+    "ignoreDeprecations": "6.0",
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",

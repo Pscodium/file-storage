@@ -1,8 +1,27 @@
-import { contextBridge, ipcRenderer } from 'electron';
 import { electronAPI } from '@electron-toolkit/preload';
+import { contextBridge, ipcRenderer } from 'electron';
 
 // Custom APIs for renderer
-const api = {};
+const api = {
+    selectSavePath: (suggestedName?: string) => ipcRenderer.invoke('select-save-path', { suggestedName }) as Promise<string | null>,
+    startDownload: (payload: { id: string; url: string; filePath: string }) => ipcRenderer.invoke('start-download', payload) as Promise<boolean>,
+    onDownloadProgress: (callback: (data: { id: string; progress: number }) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, data: { id: string; progress: number }) => callback(data);
+        ipcRenderer.on('download-progress', handler);
+        return () => ipcRenderer.removeListener('download-progress', handler);
+    },
+    onDownloadComplete: (callback: (data: { id: string; filePath: string }) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, data: { id: string; filePath: string }) => callback(data);
+        ipcRenderer.on('download-complete', handler);
+        return () => ipcRenderer.removeListener('download-complete', handler);
+    },
+    onDownloadError: (callback: (data: { id: string; error: string }) => void) => {
+        const handler = (_event: Electron.IpcRendererEvent, data: { id: string; error: string }) => callback(data);
+        ipcRenderer.on('download-error', handler);
+        return () => ipcRenderer.removeListener('download-error', handler);
+    },
+    showInFolder: (filePath: string) => ipcRenderer.invoke('show-in-folder', { filePath }) as Promise<boolean>,
+};
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

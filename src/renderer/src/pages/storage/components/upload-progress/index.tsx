@@ -37,7 +37,7 @@ export default function UploadProgress({ files, onClose }: UploadProgressProps) 
     }, [uniqueFiles]);
 
     return (
-        <div className='fixed bottom-5 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 p-4 animate-fade-up'>
+        <div className='fixed bottom-5 right-10 transform -translate-x-1/2 z-50 w-11/12 max-w-2xl bg-white rounded-lg shadow-lg border border-gray-200 p-4 animate-fade-up'>
             <div className='flex justify-between items-center mb-3'>
                 <h3 className='font-semibold text-lg flex items-center'>
                     {allComplete ? (
