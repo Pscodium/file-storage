@@ -11,6 +11,10 @@ import icon from '../../resources/favicon.png?asset';
 autoUpdater.autoDownload = false;
 autoUpdater.autoInstallOnAppQuit = true;
 
+// Carregar package.json e changelogs
+const packageJson = JSON.parse(fs.readFileSync(join(__dirname, '../../package.json'), 'utf-8'));
+const changelogs = JSON.parse(fs.readFileSync(join(__dirname, '../../changelogs.json'), 'utf-8'));
+
 function createWindow(): void {
     const mainWindow = new BrowserWindow({
         width: 900,
@@ -208,6 +212,21 @@ ipcMain.handle('check-for-updates', async () => {
         console.error('Erro ao verificar atualizações:', error);
         return { success: false, error: (error as Error).message };
     }
+});
+
+// Handler para obter informações do app
+ipcMain.handle('get-app-info', () => {
+    return {
+        name: packageJson.name || 'File Storage',
+        version: app.getVersion(),
+        author: packageJson.author || 'Peterson Larson',
+        description: packageJson.description || '',
+    };
+});
+
+// Handler para obter changelogs
+ipcMain.handle('get-changelogs', () => {
+    return changelogs.versions || [];
 });
 
 app.on('window-all-closed', () => {

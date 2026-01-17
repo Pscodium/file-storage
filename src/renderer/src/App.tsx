@@ -1,13 +1,17 @@
+import { AiOutlineInfoCircle } from 'react-icons/ai';
 import { BiLogOut, BiSolidDoorOpen } from 'react-icons/bi';
+import AboutDialog from './components/Dialog/About';
 import LoginDialog from './components/Dialog/Login';
 import { Toaster } from './components/ui/toaster';
 import { UpdateNotification } from './components/UpdateNotification';
+import { useAboutDialog } from './contexts/about.dialog';
 import { useAuth } from './contexts/auth';
 import { useLoginDialog } from './contexts/login.dialog';
 import Storage from './pages/storage';
 
 export default function App(): JSX.Element {
     const { openDialog } = useLoginDialog();
+    const { openDialog: openAboutDialog } = useAboutDialog();
     const { user, Logout } = useAuth();
 
     return (
@@ -22,7 +26,11 @@ export default function App(): JSX.Element {
                     <BiSolidDoorOpen size={23} className='fill-gray-400' />
                 </div>
             )}
+            <div className='fixed left-10 bottom-2 cursor-pointer' onClick={openAboutDialog}>
+                <AiOutlineInfoCircle size={20} className='fill-gray-400' />
+            </div>
             <LoginDialog />
+            <AboutDialog />
             <UpdateNotification />
             <Toaster />
         </div>

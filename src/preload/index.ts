@@ -46,6 +46,9 @@ const api = {
         ipcRenderer.on('update-error', handler);
         return () => ipcRenderer.removeListener('update-error', handler);
     },
+    // App Info APIs
+    getAppInfo: () => ipcRenderer.invoke('get-app-info') as Promise<{ name: string; version: string; author: string; description: string }>,
+    getChangelogs: () => ipcRenderer.invoke('get-changelogs') as Promise<Array<{ version: string; date: string; changes: string[] }>>,
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

@@ -1,0 +1,21 @@
+{
+    "versions": [
+        {
+            "version": "1.1.1",
+            "date": "2026-01-16",
+            "changes": [
+                "Adicionado diálogo \"Sobre\" com informações da versão",
+                "Melhorias na interface de usuário",
+                "Correções de bugs e otimizações"
+            ]
+        },
+        {
+            "version": "1.1.0",
+            "date": "2026-01-16",
+            "changes": [
+                "Lançamento do recurso de atualização automática",
+                "Sistema de notificações de atualização"
+            ]
+        }
+    ]
+}
