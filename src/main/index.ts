@@ -226,7 +226,7 @@ ipcMain.handle('check-for-updates', async () => {
 // Handler para obter informações do app
 ipcMain.handle('get-app-info', () => {
     return {
-        name: packageJson.name || 'File Storage',
+        name: 'File Storage',
         version: app.getVersion(),
         author: packageJson.author || 'Peterson Larson',
         description: packageJson.description || '',
