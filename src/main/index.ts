@@ -128,6 +128,15 @@ function createWindow(): void {
         }
         return false;
     });
+
+    // Handle external link opening from renderer
+    ipcMain.handle('open-external', async (_event, { url }: { url: string }) => {
+        if (url) {
+            await shell.openExternal(url);
+            return true;
+        }
+        return false;
+    });
 }
 
 app.whenReady().then(() => {

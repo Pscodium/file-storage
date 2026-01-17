@@ -44,6 +44,8 @@ declare global {
             onUpdateDownloadProgress: (callback: (progress: DownloadProgress) => void) => () => void;
             onUpdateDownloaded: (callback: (info: UpdateInfo) => void) => () => void;
             onUpdateError: (callback: (error: string) => void) => () => void;
+            // External links
+            openExternal: (url: string) => Promise<boolean>;
             // App Info APIs
             getAppInfo: () => Promise<{ name: string; version: string; author: string; description: string }>;
             getChangelogs: () => Promise<Array<{ version: string; date: string; changes: string[] }>>;

@@ -1,3 +1,4 @@
+import DOMPurify from 'dompurify';
 import { useEffect, useState } from 'react';
 import { Button } from '../ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../ui/dialog';
@@ -98,7 +99,22 @@ export function UpdateNotification() {
                     {updateInfo?.releaseNotes && (
                         <div className='py-4'>
                             <h4 className='mb-2 text-sm font-semibold'>Novidades:</h4>
-                            <div className='text-sm text-muted-foreground max-h-40 overflow-y-auto'>{updateInfo.releaseNotes}</div>
+                            <div
+                                className='prose prose-sm max-h-40 overflow-y-auto'
+                                onClick={(e) => {
+                                    const target = e.target as HTMLElement;
+                                    const anchor = target.closest('a') as HTMLAnchorElement | null;
+                                    if (anchor && anchor.href) {
+                                        e.preventDefault();
+                                        window.api.openExternal(anchor.href);
+                                    }
+                                }}
+                                dangerouslySetInnerHTML={{
+                                    __html: DOMPurify.sanitize(updateInfo.releaseNotes, {
+                                        USE_PROFILES: { html: true },
+                                    }),
+                                }}
+                            />
                         </div>
                     )}
                     <DialogFooter>

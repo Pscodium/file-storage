@@ -46,6 +46,8 @@ const api = {
         ipcRenderer.on('update-error', handler);
         return () => ipcRenderer.removeListener('update-error', handler);
     },
+    // External links
+    openExternal: (url: string) => ipcRenderer.invoke('open-external', { url }) as Promise<boolean>,
     // App Info APIs
     getAppInfo: () => ipcRenderer.invoke('get-app-info') as Promise<{ name: string; version: string; author: string; description: string }>,
     getChangelogs: () => ipcRenderer.invoke('get-changelogs') as Promise<Array<{ version: string; date: string; changes: string[] }>>,
