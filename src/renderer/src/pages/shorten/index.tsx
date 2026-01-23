@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog';
-import { useAuth } from '@renderer/contexts/auth';
 import { usePages } from '@renderer/contexts/pages';
 import { shortenService } from '@renderer/services/shorten/api';
 import { CalendarClock, Check, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Link2, Loader2, MousePointerClick, Trash } from 'lucide-react';
