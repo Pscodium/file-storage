@@ -41,6 +41,21 @@ interface IFolder {
     updatedAt: Date;
 }
 
+interface ShortenedLink {
+    code: string;
+    original: string;
+    shortUrl: string;
+    clicks: number;
+    createdAt: number;
+}
+
+interface ShortenedLinkResponse {
+    data: ShortenedLink[];
+    page: number;
+    totalPages: number;
+    totalItems: number;
+}
+
 type IFolderResponse = IFolder[];
 type IFileResponse = IFile[];
 type ITagResponse = ITag[];
@@ -48,3 +63,5 @@ type IArticleResponse = IArticle[];
 
 type FileTypes = 'image/*' | 'audio/*' | 'video/*';
 type OrderOptions = 'date-ascending' | 'date-descending' | 'name-alphabetical' | 'name-reverse-alphabetical';
+
+type PagesType = 'storage' | 'shorten';

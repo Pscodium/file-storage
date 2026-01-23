@@ -5,7 +5,7 @@ import { Desktop } from './components/desktop';
 import { Files } from './components/files';
 import { apiService } from '@renderer/services/api';
 import { useAuth } from '@renderer/contexts/auth';
-import { FaArrowLeft, FaPlus, FaSquareCheck, FaTrashCan, FaLock, FaUnlock } from 'react-icons/fa6';
+import { FaArrowLeft, FaPlus, FaSquareCheck, FaTrashCan, FaLock, FaUnlock, FaLink } from 'react-icons/fa6';
 import UploadDialog from './components/dialog/upload';
 import { toast } from '@renderer/components/ui/use-toast';
 import ContentDialog from './components/dialog/content';
@@ -27,6 +27,7 @@ import { useSocket } from '@renderer/services/socket';
 import DeleteProgress, { FileDeleteProgress } from './components/delete-progress';
 import { FaCheck, FaTrashAlt } from 'react-icons/fa';
 import UploadProgress, { FileUploadProgress } from './components/upload-progress';
+import { usePages } from '@renderer/contexts/pages';
 
 export interface StorageProps {}
 
@@ -40,6 +41,7 @@ enum Mimetypes {
 export default function Storage() {
     const { user } = useAuth();
     const { fileOrder, folderOrder, setOrderFile, setOrderFolder } = useOrder();
+    const { setOpenedPage } = usePages();
     const [openUploadDialog, setOpenUploadDialog] = useState(false);
     const [openContentDialog, setOpenContentDialog] = useState(false);
     const [openImageConversorDialog, setOpenImageConversorDialog] = useState(false);
@@ -719,6 +721,9 @@ export default function Storage() {
                                     </Popover>
                                     <div onClick={() => setOpenImageConversorDialog(true)} className='select-none cursor-pointer'>
                                         <FaSyncAlt size={13} className='hover:fill-gray-600 fill-black' />
+                                    </div>
+                                    <div onClick={() => setOpenedPage('shorten')} className='select-none cursor-pointer'>
+                                        <FaLink size={17} className='hover:fill-gray-600 fill-black' />
                                     </div>
                                 </div>
                             )}

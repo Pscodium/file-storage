@@ -1,6 +1,16 @@
 {
     "versions": [
         {
+            "version": "1.1.14",
+            "date": "2026-01-16",
+            "changes": [
+                "Funcionalidade de encurtamento de URLs implementada",
+                "Interface de usuário para gerenciamento de URLs encurtadas",
+                "Integração com API de encurtamento de URLs",
+                "Correções de bugs menores e melhorias de desempenho"
+            ]
+        },
+        {
             "version": "1.1.13",
             "date": "2026-01-16",
             "changes": [
