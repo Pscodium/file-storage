@@ -9,7 +9,6 @@ import { FaRegFolder } from 'react-icons/fa';
 import { Desktop } from './components/desktop';
 
 export default function Shorten(): JSX.Element {
-    const { user } = useAuth();
     const { setOpenedPage } = usePages();
     const [url, setUrl] = useState('');
     const [shortUrl, setShortUrl] = useState('');
