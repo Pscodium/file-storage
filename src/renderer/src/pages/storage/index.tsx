@@ -1,33 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-empty-interface */
-import { useEffect, useRef, useState } from 'react';
-import { Desktop } from './components/desktop';
-import { Files } from './components/files';
-import { apiService } from '@renderer/services/api';
-import { useAuth } from '@renderer/contexts/auth';
-import { FaArrowLeft, FaPlus, FaSquareCheck, FaTrashCan, FaLock, FaUnlock, FaLink } from 'react-icons/fa6';
-import UploadDialog from './components/dialog/upload';
-import { toast } from '@renderer/components/ui/use-toast';
-import ContentDialog from './components/dialog/content';
-import { Folders } from './components/folders';
-import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
-import { Input } from '@renderer/components/ui/input';
-import { Button } from '@renderer/components/ui/button';
-import { IoSend } from 'react-icons/io5';
-import { FaSyncAlt } from 'react-icons/fa';
-import randomColor from 'randomcolor';
-import { Select, SelectContent, SelectItem, SelectValue, SelectTrigger } from '@renderer/components/ui/select';
-import { TailSpin } from 'react-loader-spinner';
-import ImageConversorDialog from './components/dialog/imageConversor';
-import SearchInput from './components/search';
 import { OrderMenu } from '@renderer/components/SortMenu';
-import { useOrder } from '@renderer/contexts/order';
+import { Button } from '@renderer/components/ui/button';
+import { Input } from '@renderer/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@renderer/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@renderer/components/ui/select';
 import { Switch } from '@renderer/components/ui/switch';
-import { useSocket } from '@renderer/services/socket';
-import DeleteProgress, { FileDeleteProgress } from './components/delete-progress';
-import { FaCheck, FaTrashAlt } from 'react-icons/fa';
-import UploadProgress, { FileUploadProgress } from './components/upload-progress';
+import { toast } from '@renderer/components/ui/use-toast';
+import { useAuth } from '@renderer/contexts/auth';
+import { useOrder } from '@renderer/contexts/order';
 import { usePages } from '@renderer/contexts/pages';
+import { apiService } from '@renderer/services/api';
+import { useSocket } from '@renderer/services/socket';
+import randomColor from 'randomcolor';
+import { useEffect, useRef, useState } from 'react';
+import { FaCheck, FaSyncAlt, FaTrashAlt } from 'react-icons/fa';
+import { FaArrowLeft, FaLink, FaLock, FaPlus, FaSquareCheck, FaTrashCan, FaUnlock } from 'react-icons/fa6';
+import { IoSend } from 'react-icons/io5';
+import { TailSpin } from 'react-loader-spinner';
+import DeleteProgress, { FileDeleteProgress } from './components/delete-progress';
+import { Desktop } from './components/desktop';
+import ContentDialog from './components/dialog/content';
+import ImageConversorDialog from './components/dialog/imageConversor';
+import UploadDialog from './components/dialog/upload';
+import { Files } from './components/files';
+import { Folders } from './components/folders';
+import SearchInput from './components/search';
+import UploadProgress, { FileUploadProgress } from './components/upload-progress';
 
 export interface StorageProps {}
 
@@ -108,18 +107,18 @@ export default function Storage() {
 
     useEffect(() => {
         if (socket) {
-            socket.off(`delete-progress-${user?.id}`);
-            socket.off(`delete-complete-${user?.id}`);
-            socket.off(`delete-error-${user?.id}`);
-            socket.off(`delete-all-complete-${user?.id}`);
+            socket.off(`delete-progress-${user?.userId}`);
+            socket.off(`delete-complete-${user?.userId}`);
+            socket.off(`delete-error-${user?.userId}`);
+            socket.off(`delete-all-complete-${user?.userId}`);
         }
 
-        if (user?.id && !socket) {
+        if (user?.userId && !socket) {
             initSocket();
         }
 
         if (socket) {
-            socket.on(`delete-progress-${user?.id}`, (data: { deleteId: string; fileId: string; fileName?: string; progress: number; index: number; total: number }) => {
+            socket.on(`delete-progress-${user?.userId}`, (data: { deleteId: string; fileId: string; fileName?: string; progress: number; index: number; total: number }) => {
                 setFileDeletes((prevDeletes) => {
                     const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
 
@@ -152,7 +151,7 @@ export default function Storage() {
                 setDeleteProgressVisible(true);
             });
 
-            socket.on(`delete-complete-${user?.id}`, (data: { deleteId: string; fileId: string; fileName?: string; index: number }) => {
+            socket.on(`delete-complete-${user?.userId}`, (data: { deleteId: string; fileId: string; fileName?: string; index: number }) => {
                 setFileDeletes((prevDeletes) => {
                     const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
 
@@ -174,7 +173,7 @@ export default function Storage() {
                 });
             });
 
-            socket.on(`delete-error-${user?.id}`, (data: { deleteId?: string; fileId?: string; fileName?: string; error: string; index?: number }) => {
+            socket.on(`delete-error-${user?.userId}`, (data: { deleteId?: string; fileId?: string; fileName?: string; error: string; index?: number }) => {
                 if (data.deleteId) {
                     setFileDeletes((prevDeletes) => {
                         const existingIndex = prevDeletes.findIndex((del) => del.deleteId === data.deleteId);
@@ -201,7 +200,7 @@ export default function Storage() {
                 }
             });
 
-            socket.on(`delete-all-complete-${user?.id}`, async (data: { sessionId: string; folderId: string; folderData?: IFolder; totalFiles: number; deletedFiles: string[] }) => {
+            socket.on(`delete-all-complete-${user?.userId}`, async (data: { sessionId: string; folderId: string; folderData?: IFolder; totalFiles: number; deletedFiles: string[] }) => {
                 setFileDeletes((prevDeletes) =>
                     prevDeletes.map((del) => ({
                         ...del,
@@ -244,28 +243,28 @@ export default function Storage() {
 
         return () => {
             if (socket) {
-                socket.off(`delete-progress-${user?.id}`);
-                socket.off(`delete-complete-${user?.id}`);
-                socket.off(`delete-error-${user?.id}`);
-                socket.off(`delete-all-complete-${user?.id}`);
+                socket.off(`delete-progress-${user?.userId}`);
+                socket.off(`delete-complete-${user?.userId}`);
+                socket.off(`delete-error-${user?.userId}`);
+                socket.off(`delete-all-complete-${user?.userId}`);
             }
         };
-    }, [socket, user?.id]);
+    }, [socket, user?.userId]);
 
     useEffect(() => {
         if (socket) {
-            socket.off(`upload-progress-${user?.id}`);
-            socket.off(`upload-complete-${user?.id}`);
-            socket.off(`upload-error-${user?.id}`);
-            socket.off(`upload-all-complete-${user?.id}`);
+            socket.off(`upload-progress-${user?.userId}`);
+            socket.off(`upload-complete-${user?.userId}`);
+            socket.off(`upload-error-${user?.userId}`);
+            socket.off(`upload-all-complete-${user?.userId}`);
         }
 
-        if (user?.id && !socket) {
+        if (user?.userId && !socket) {
             initSocket();
         }
 
         if (socket) {
-            socket.on(`upload-progress-${user?.id}`, (data: { fileId: string; fileName: string; progress: number; index: number; total: number }) => {
+            socket.on(`upload-progress-${user?.userId}`, (data: { fileId: string; fileName: string; progress: number; index: number; total: number }) => {
                 setFileUploads((prevUploads) => {
                     const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
 
@@ -296,7 +295,7 @@ export default function Storage() {
                 setUploadProgressVisible(true);
             });
 
-            socket.on(`upload-complete-${user?.id}`, (data: { fileId: string; fileName: string; index: number }) => {
+            socket.on(`upload-complete-${user?.userId}`, (data: { fileId: string; fileName: string; index: number }) => {
                 setFileUploads((prevUploads) => {
                     const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
 
@@ -318,7 +317,7 @@ export default function Storage() {
             });
 
             // Error handler
-            socket.on(`upload-error-${user?.id}`, (data: { fileId?: string; fileName?: string; error: string; index?: number }) => {
+            socket.on(`upload-error-${user?.userId}`, (data: { fileId?: string; fileName?: string; error: string; index?: number }) => {
                 if (data.fileId) {
                     setFileUploads((prevUploads) => {
                         const existingIndex = prevUploads.findIndex((upload) => upload.fileId === data.fileId);
@@ -344,7 +343,7 @@ export default function Storage() {
                 }
             });
 
-            socket.on(`upload-all-complete-${user?.id}`, async (data: { folderId: string; totalFiles: number; filesData: any[]; folderData?: IFolder }) => {
+            socket.on(`upload-all-complete-${user?.userId}`, async (data: { folderId: string; totalFiles: number; filesData: any[]; folderData?: IFolder }) => {
                 setFileUploads((prevUploads) =>
                     prevUploads.map((upload) => ({
                         ...upload,
@@ -384,13 +383,13 @@ export default function Storage() {
 
         return () => {
             if (socket) {
-                socket.off(`upload-progress-${user?.id}`);
-                socket.off(`upload-complete-${user?.id}`);
-                socket.off(`upload-error-${user?.id}`);
-                socket.off(`upload-all-complete-${user?.id}`);
+                socket.off(`upload-progress-${user?.userId}`);
+                socket.off(`upload-complete-${user?.userId}`);
+                socket.off(`upload-error-${user?.userId}`);
+                socket.off(`upload-all-complete-${user?.userId}`);
             }
         };
-    }, [socket, user?.id, folder]);
+    }, [socket, user?.userId, folder]);
 
     function orderList(list: IFileResponse | IFolderResponse, criterion: OrderOptions): IFileResponse | IFolderResponse {
         switch (criterion) {
@@ -669,7 +668,7 @@ export default function Storage() {
                             <div className='absolute top-[30px] right-[5px]'>
                                 <OrderMenu actualOrder={folderOrder} onOrder={(newOrder) => setOrderFolder(newOrder)} />
                             </div>
-                            {user && user?.role === 'owner' && (
+                            {user?.roles?.includes('admin') && (
                                 <div className='no-drag flex items-center gap-2 absolute h-[20px] top-[5px] z-[999] pointer-events-auto ml-1 cursor-pointer'>
                                     <Popover onOpenChange={() => setOpenFolderPopover(!openFolderPopover)} open={openFolderPopover}>
                                         <PopoverTrigger>
@@ -769,7 +768,7 @@ export default function Storage() {
                             <div onClick={returnToFolders} className='absolute no-drag top-[6px] z-[999] ml-[8px] cursor-pointer pointer-events-auto'>
                                 <FaArrowLeft />
                             </div>
-                            {user && user?.role === 'owner' && (
+                            {user?.roles?.includes('admin') && (
                                 <>
                                     <div onClick={() => setOpenUploadDialog(true)} className='absolute h-[20px] no-drag top-[6px] z-[9999] ml-[36px] cursor-pointer pointer-events-auto'>
                                         <FaPlus />

@@ -3,7 +3,7 @@ import { useQuery } from 'react-query';
 
 export function useUserData() {
     const query = useQuery({
-        queryFn: apiService.getUserData,
+        queryFn: apiService.checkAuth,
         queryKey: ['userdata'],
     });
 

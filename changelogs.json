@@ -1,6 +1,15 @@
 {
     "versions": [
         {
+            "version": "1.1.15",
+            "date": "2026-02-16",
+            "changes": [
+                "Correção de bugs relacionados à autenticação",
+                "Melhorias na interface de usuário para gerenciamento de arquivos",
+                "Otimizações de desempenho para operações de upload e download"
+            ]
+        },
+        {
             "version": "1.1.14",
             "date": "2026-01-16",
             "changes": [

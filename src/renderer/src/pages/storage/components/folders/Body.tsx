@@ -9,17 +9,17 @@ export interface ArticleCardProps extends React.ComponentProps<'div'> {
 
 export default function Body({ hover, children, className, ...props }: ArticleCardProps) {
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div {...props} className={className}>
-                        {children}
-                    </div>
-                </TooltipTrigger>
-                <TooltipContent side='bottom'>
-                    <p>{hover}</p>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+        <div {...props} className={className}>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <p>{children}</p>
+                    </TooltipTrigger>
+                    <TooltipContent className='px-2 py-0.5 bg-white' side='bottom'>
+                        <p>{hover}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
     );
 }

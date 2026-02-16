@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AxiosInstance } from 'axios';
 import api from './axios';
-import { parse } from 'cookie';
 
 class ApiService {
     public api: AxiosInstance;
@@ -13,7 +12,7 @@ class ApiService {
             (response) => response,
             async (err) => {
                 const originalRequest = err.config;
-                if (err.response?.status != 401 && !originalRequest._retry) {
+                if (err.response?.status === 401 && !originalRequest._retry) {
                     originalRequest._retry = true;
                     return this.api(originalRequest);
                 }
@@ -24,7 +23,7 @@ class ApiService {
 
     getHeaders(contentType?: string): Record<string, string> {
         const headers: Record<string, string> = {};
-        const token = parse(document.cookie).token;
+        const token = localStorage.getItem('access_token');
 
         if (token) {
             headers.Authorization = `Bearer ${token}`;
@@ -34,8 +33,6 @@ class ApiService {
             headers['Content-Type'] = contentType;
         }
 
-        console.log('os headers ', headers);
-        console.log('token ', token);
         return headers;
     }
 

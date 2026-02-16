@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { io, Socket } from 'socket.io-client';
 import { useAuth } from '@renderer/contexts/auth';
+import { io, Socket } from 'socket.io-client';
 
 let socket: Socket | null = null;
 
@@ -41,13 +41,13 @@ export const useSocket = () => {
     const { user } = useAuth();
 
     const getOrInitSocket = () => {
-        if (!user?.id) return null;
-        return socket || initSocket(user.id.toString());
+        if (!user?.userId) return null;
+        return socket || initSocket(user.userId.toString());
     };
 
     return {
         socket: getOrInitSocket(),
-        initSocket: () => user?.id && initSocket(user.id.toString()),
+        initSocket: () => user?.userId && initSocket(user.userId.toString()),
         closeSocket,
     };
 };

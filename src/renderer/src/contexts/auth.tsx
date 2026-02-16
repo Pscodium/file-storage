@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { useToast } from '@renderer/components/ui/use-toast';
 import useDidMount from '@renderer/hooks/react/useMount';
-import { apiService, UserProps, LoginProps } from '@renderer/services/api';
+import { apiService, LoginProps, UserProps } from '@renderer/services/api';
 import React, { createContext, useContext, useState } from 'react';
 import { useLoginDialog } from './login.dialog';
 
@@ -36,7 +36,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                 return false;
             }
 
-            setUser(user.data);
+            setUser(user);
             setLogged(true);
             closeDialog();
 
@@ -124,4 +124,4 @@ const useAuth = () => {
     return context;
 };
 
-export { AuthProvider, useAuth, AuthContext };
+export { AuthContext, AuthProvider, useAuth };

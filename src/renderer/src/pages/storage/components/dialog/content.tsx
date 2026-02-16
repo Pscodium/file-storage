@@ -256,7 +256,7 @@ export default function ContentDialog({ isOpen, setOpen, file, folder, deleteFil
                             </div>
                         </div>
 
-                        {user?.role == 'owner' && (
+                        {user?.roles?.includes('admin') && (
                             <button className='self-center' onClick={handleDeleteClick}>
                                 {confirming ? <FaSquareCheck color='#ffcc00' className='h-4 w-4' /> : <FaTrashCan color='#FF3366' className='h-4 w-4' />}
                             </button>

@@ -24,29 +24,29 @@ export default function Body({ hover, children, className, selectionMode = false
     };
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    <div
-                        {...props}
-                        onClick={handleClick}
-                        className={`${className} ${selectionMode ? 'cursor-pointer' : ''} 
+        <div
+            {...props}
+            onClick={handleClick}
+            className={`${className} ${selectionMode ? 'cursor-pointer' : ''} 
                         ${isSelected ? 'bg-blue-100 border-2 border-blue-500' : ''}`}
-                    >
-                        {selectionMode && (
-                            <div className='absolute top-1 right-1 z-10'>
-                                <div className={`h-5 w-5 rounded-full border ${isSelected ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-400'} flex items-center justify-center`}>
-                                    {isSelected && <FaCheckCircle size={14} className='text-white' />}
-                                </div>
-                            </div>
-                        )}
-                        {children}
+        >
+            {selectionMode && (
+                <div className='absolute top-1 right-1 z-10'>
+                    <div className={`h-5 w-5 rounded-full border ${isSelected ? 'bg-blue-500 border-blue-500' : 'bg-white border-gray-400'} flex items-center justify-center`}>
+                        {isSelected && <FaCheckCircle size={14} className='text-white' />}
                     </div>
-                </TooltipTrigger>
-                <TooltipContent side='bottom'>
-                    <p>{hover}</p>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                </div>
+            )}
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <p>{children}</p>
+                    </TooltipTrigger>
+                    <TooltipContent className='px-2 py-0.5 bg-white' side='bottom'>
+                        <p>{hover}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+        </div>
     );
 }
