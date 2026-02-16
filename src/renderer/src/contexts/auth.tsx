@@ -78,6 +78,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
                 window.location.reload();
                 return logout;
             }
+            return false;
         } catch (err) {
             toast({
                 variant: 'destructive',
