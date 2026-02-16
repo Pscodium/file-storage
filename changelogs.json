@@ -4,9 +4,18 @@
             "version": "1.1.15",
             "date": "2026-02-16",
             "changes": [
-                "Correção de bugs relacionados à autenticação",
-                "Melhorias na interface de usuário para gerenciamento de arquivos",
-                "Otimizações de desempenho para operações de upload e download"
+                "Migração para autenticação OAuth2 com PKCE",
+                "Separação de URLs: autenticação em http://localhost:3000, aplicação em http://localhost:12000",
+                "Implementação de deep link para Electron: ocs-auth://callback",
+                "Suporte para redirecionamento configurável por ambiente (dev/prod)",
+                "Tokens armazenados em localStorage em vez de cookies",
+                "Implementação de refresh token automático no interceptor de 401",
+                "Nova estrutura de usuário com userId, roles[] e clientId",
+                "Permissões baseadas em roles (admin, user, etc)",
+                "Geração de PKCE (code challenge/verifier) para segurança de autorização",
+                "Validação obrigatória de autenticação em endpoints de storage",
+                "Sincronização de sockets com novo userId do JWT",
+                "Headers de autorização agora enviados em todas as requisições autenticadas"
             ]
         },
         {
