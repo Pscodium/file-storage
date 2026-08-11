@@ -1,5 +1,12 @@
 {
     "versions": [
+         {
+            "version": "1.1.16",
+            "date": "2026-08-11",
+            "changes": [
+                "Correção das variáveis de ambiente para endpoints de backend, autenticação e encurtamento de URLs"       
+            ]
+        },
         {
             "version": "1.1.15",
             "date": "2026-02-16",
