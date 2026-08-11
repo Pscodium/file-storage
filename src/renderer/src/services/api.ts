@@ -347,6 +347,53 @@ class ApiService {
         return res.data;
     }
 
+    async shortenUrl(url: string): Promise<{ shortUrl: string }> {
+        this.requireAuth();
+
+        const res = await this.api.post(
+            '/shorten',
+            { url },
+            {
+                headers: this.getHeaders(),
+            }
+        );
+
+        if (res.status != 200) {
+            throw new Error('Unexpected error on get shortenUrl');
+        }
+
+        return res.data;
+    }
+
+    async getShortenedUrls(params: Record<string, any>): Promise<ShortenedLinkResponse> {
+        this.requireAuth();
+
+        const res = await this.api.get('/shorten/user/urls', {
+            headers: this.getHeaders('application/json'),
+            params,
+        });
+
+        if (res.status != 200) {
+            throw new Error('Unexpected error on get shortened URLs');
+        }
+
+        return res.data;
+    }
+
+    async deleteUserUrl(code: string): Promise<void> {
+        this.requireAuth();
+
+        const res = await this.api.delete(`/shorten/user/url/${code}`, {
+            headers: this.getHeaders(),
+        });
+
+        if (res.status != 204) {
+            throw new Error('Unexpected error on get shortened URLs');
+        }
+
+        return res.data;
+    }
+
     private async exchangeCode(code: string, verifier: string): Promise<AuthTokens> {
         const res = await authApi.post<AuthTokens>(
             '/auth/token',

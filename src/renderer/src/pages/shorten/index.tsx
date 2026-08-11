@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@renderer/components/ui/dialog';
 import { usePages } from '@renderer/contexts/pages';
-import { shortenService } from '@renderer/services/shorten/api';
+import { apiService } from '@renderer/services/api';
 import { CalendarClock, Check, ChevronLeft, ChevronRight, Clock, Copy, ExternalLink, Link2, Loader2, MousePointerClick, Trash } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { FaRegFolder } from 'react-icons/fa';
@@ -30,7 +30,7 @@ export default function Shorten(): JSX.Element {
                 limit: '5',
             });
 
-            const response = await shortenService.getShortenedUrls(params);
+            const response = await apiService.getShortenedUrls(params);
 
             setLinks(response.data);
             setTotalPages(response.totalPages);
@@ -73,7 +73,7 @@ export default function Shorten(): JSX.Element {
         setIsLoading(true);
 
         try {
-            const response = await shortenService.shortenUrl(url);
+            const response = await apiService.shortenUrl(url);
 
             setShortUrl(response.shortUrl);
         } catch (err) {
@@ -86,7 +86,7 @@ export default function Shorten(): JSX.Element {
 
     const handleDeleteUserUrl = async (code: string) => {
         try {
-            await shortenService.deleteUserUrl(code);
+            await apiService.deleteUserUrl(code);
             fetchLinks(currentPage);
             setDeleteModal({ isOpen: false, code: null });
         } catch (err) {
